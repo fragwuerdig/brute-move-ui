@@ -7,7 +7,6 @@ import { useWallet } from './WalletProvider';
 import { useState } from 'react';
 import type { UnsignedTx } from '@goblinhunt/cosmes/wallet';
 import { MsgExecuteContract } from '@goblinhunt/cosmes/client';
-import { id } from 'ethers';
 
 import { useNavigate } from "react-router-dom";
 import { STORE_KEY_SAVED_GAMES, type SavedGame } from './Home';
