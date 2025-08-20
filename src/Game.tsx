@@ -1,40 +1,21 @@
 
 import { Chess } from 'chess.js';
-import { useState, useRef, useEffect, type JSX } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Chessboard } from "react-chessboard";
 import type { Piece, PromotionPieceOption, Square } from 'react-chessboard/dist/chessboard/types';
 import { useWallet } from './WalletProvider';
 import { MsgExecuteContract } from '@goblinhunt/cosmes/client';
 import type { UnsignedTx } from '@goblinhunt/cosmes/wallet';
+import { Box, Button, Card, Typography } from '@mui/material';
+import { fetchContractStateSmart, type GameInfo } from './Common';
 
 interface GameProps {
   gameAddress?: string;
 }
 
-interface GameInfo {
-  board: string;
-  players: string[];
-  turn: "black" | "white";
-  is_finished: boolean;
-  winner: string;
-}
-
-function fetchContractStateSmart(gameAddress: string, query: any): Promise<any> {
-
-  let queryBase64 = btoa(JSON.stringify(query));
-  let url = `https://rebel-lcd.luncgoblins.com/cosmwasm/wasm/v1/contract/${gameAddress}/smart/${queryBase64}`;
-  return fetch(url, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  }).then(response => response.json())
-    .then(data => data.data)
-    .catch(error => {
-      console.error("Error fetching contract state:", error);
-      throw error;
-    });
-
+function isPlayer(info: GameInfo, connectedAddr: string | undefined): boolean {
+  if (!connectedAddr) return false;
+  return info.players.includes(connectedAddr);
 }
 
 function isPlayerTurn(info: GameInfo, connectedAddr: string | undefined): boolean {
@@ -56,10 +37,6 @@ function canPlay(info: GameInfo, connectedAddr: string | undefined): boolean {
   return true;
 }
 
-function connectedPlayerColor(info: GameInfo, connectedAddr: string | undefined): "white" | "black" | "neither" {
-  return getPlayersColor(info, connectedAddr || "");
-}
-
 function getPlayersColor(info: GameInfo, address: string): "white" | "black" | "neither" {
   if (!address) return "neither";
   if (info.players[0] === address) return "white";
@@ -79,7 +56,7 @@ function Game({ gameAddress }: GameProps) {
   const [gameInfo, setGameInfo] = useState<GameInfo | null>(null);
   const polling = useRef<boolean>(true);
 
-  const { connect, connected, connectedAddr, broadcast } = useWallet();
+  const { connectedAddr, broadcast } = useWallet();
 
   function triggerReload() {
     setReload(reload + 1);
@@ -165,9 +142,9 @@ function Game({ gameAddress }: GameProps) {
         uci: uci,
       }
     };
-    
+
     console.log("Attempting move:", move, "with message:", msg, "uci:", uci);
-    
+
     const tx = {
       msgs: [
         new MsgExecuteContract({
@@ -196,60 +173,92 @@ function Game({ gameAddress }: GameProps) {
 
   }
 
-  function briefInfo(gameInfo: GameInfo | null, connectedAddr: string | undefined): JSX.Element | null {
-    if (!gameInfo) return (<p>Invalid Game Info</p>);
-    if (gameInfo.is_finished) {
-      return (
-        <p>
-          The game is over, my friend! <br /> {gameInfo.winner ? `Winner: ${gameInfo.winner} (${getPlayersColor(gameInfo, gameInfo.winner)})` : "It's a draw!"}
-        </p>
-      );
-    }
-    return (
-      <p>
-        You are {
-          (connectedPlayerColor(gameInfo, connectedAddr) === "white" ||
-            connectedPlayerColor(gameInfo, connectedAddr) === "black")
-            ? <>
-              playing {connectedPlayerColor(gameInfo, connectedAddr)}
-              <br />
-              {isPlayerTurn(gameInfo, connectedAddr) ? "it's your turn" : "waiting for opponent's move"}
-            </>
-            : "spectator"
-        }
-      </p>
-    )
-  }
-
   return (
     <>
-      {connected ? (
+
+      {
         fetchingGameInfo ? (
           <div>Loading Game Info...</div>
         ) : (
           invalidGameInfo ? (
             <div>Invalid Game Info.<br /> Please check the address.</div>
           ) : (
-            <div style={{ width: "600px", margin: "2rem auto", textAlign: "center" }}>
-              <h1>Brute Move UI</h1>
-              {
-                briefInfo(gameInfo, connectedAddr)
-              }
-              <Chessboard
-                boardOrientation={gameInfo ? boardOrientation(gameInfo, connectedAddr) : "white"}
-                position={fen}
-                onPieceDrop={onDrop}
-                onPromotionPieceSelect={onPromotionPieceSelect}
-                arePiecesDraggable={gameInfo ? canPlay(gameInfo, connectedAddr) && draggable : false}
-              />
-            </div>
+            <Box className="chess-game-container" sx={{ display: 'flex', flexDirection: 'row', alignSelf: 'center', gap: '20px' }}>
+              <Box sx={{ height: '100%' }}>
+                <Chessboard
+                  position={fen}
+                  onPieceDrop={onDrop}
+                  onPromotionPieceSelect={onPromotionPieceSelect}
+                  arePiecesDraggable={
+                    gameInfo ? (
+                      connectedAddr ? (
+                        canPlay(gameInfo, connectedAddr) ? draggable : false
+                      ) : false
+                    ) : false
+                  }
+                  boardOrientation={gameInfo ? boardOrientation(gameInfo, connectedAddr) : "white"}
+                  boardWidth={610}
+                />
+              </Box>
+              <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', minWidth: '400px' }}>
+                <Card variant="outlined" sx={{ marginBottom: '15px', padding: '15px', width: '100%', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                  <Typography sx={{ marginBottom: '5px' }}><b>Player White:</b></Typography>
+                  <Typography>
+                    {
+                      gameInfo ? (connectedAddr == gameInfo.players[0] ? "You" : gameInfo.players[0]) : "Loading..."
+                    }
+                  </Typography>
+                </Card>
+                <Card variant="outlined" sx={{ marginBottom: '15px', padding: '15px', width: '100%', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                  <Typography sx={{ marginBottom: '5px' }}><b>Player Black:</b></Typography>
+                  <Typography>
+                    {
+                      gameInfo ? (connectedAddr == gameInfo.players[1] ? "You" : gameInfo.players[1]) : "Loading..."
+                    }
+                  </Typography>
+                </Card>
+                <Card variant="outlined" sx={{ marginBottom: '15px', padding: '15px', width: '100%', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                  <Typography sx={{ marginBottom: '5px' }}><b>Turn:</b></Typography>
+                  <Typography>
+                    {
+                      gameInfo ? (
+                        isPlayer(gameInfo, connectedAddr) ? (
+                          isPlayerTurn(gameInfo, connectedAddr) ? "Your turn" : "Waiting for opponent's move"
+                        ) : (
+                          gameInfo.turn === "white" ? "White's turn" : "Black's turn"
+                        )
+                      ) : "Loading..."
+                    }
+                  </Typography>
+                </Card>
+                <Card variant="outlined" sx={{ marginBottom: '15px', padding: '15px', width: '100%', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                  <Typography sx={{ marginBottom: '5px' }}><b>Game Status:</b></Typography>
+                  <Typography>
+                    {
+                      gameInfo ? (
+                        gameInfo.is_finished ? ( 
+                          gameInfo.winner ? `Game over, winner: ${gameInfo.winner} (${getPlayersColor(gameInfo, gameInfo.winner)})` : "It's a draw!"
+                        ) : "The game is ongoing"
+                      ) : "Loading..."
+                    }
+                  </Typography>
+                </Card>
+                <Card variant="outlined" sx={{ marginBottom: '15px', padding: '15px', width: '100%', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                  <Typography sx={{ marginBottom: '5px' }}><b>Last Move:</b></Typography>
+                  <Typography>e2e4</Typography>
+                </Card>
+                <Card variant="outlined" sx={{ padding: '15px', width: '100%', flexGrow: 1, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                  <Typography sx={{ marginBottom: '5px' }}><b>Actions:</b></Typography>
+                  <Box sx={{ display: 'flex', flexDirection: 'row' }}>
+                    <Button variant="contained" color="error" sx={{ marginTop: '15px', width: '50%', marginRight: '5px' }}>Give Up</Button>
+                    <Button variant="contained" color="primary" sx={{ marginTop: '15px', width: '50%' }}>Offer Draw</Button>
+                  </Box>
+                </Card>
+              </Box>
+            </Box>
           )
         )
-      ) : (
-        <div style={{ width: "400px", margin: "2rem auto", textAlign: "center" }}>
-          <button onClick={connect}>Mit Wallet verbinden</button>
-        </div>
-      )}
+      }
     </>
   );
 }

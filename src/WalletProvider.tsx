@@ -53,7 +53,7 @@ const Toast: React.FC<{ status: ToastStatus }> = ({ status }) => {
         display: "flex",
         alignItems: "center",
         gap: 8,
-        zIndex: 1000,
+        zIndex: 1100,
       }}
     >
       <span>{icon}</span>
@@ -108,6 +108,7 @@ export interface WalletContextValue {
   broadcast: (tx: UnsignedTx, feeMultiplier?: number) => ReturnType<ConnectedWallet["broadcastTxSync"]>;
   connect: () => Promise<void>;
   disconnect: () => void;
+  chain: ChainInfo<string>;
 }
 
 const WalletContext = createContext<WalletContextValue | undefined>(undefined);
@@ -130,6 +131,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
   const handleSelect = useCallback(async (type: WalletType) => {
     setConnecting(true);
     controller.connect(type, [chain]).then((wallets) => {
+      localStorage.setItem(STORAGE_KEY, type);
       setWallet(wallets.get(chain.chainId));
       setToastStatus("success");
     }).catch((err) => {
@@ -152,6 +154,27 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
   }, []);
 
   useEffect(() => {
+    const storedType = localStorage.getItem(STORAGE_KEY) as WalletType | null;
+    if (storedType === WalletType.EXTENSION || storedType === WalletType.WALLETCONNECT) {
+      setConnecting(true);
+      controller.connect(storedType, [chain])
+        .then(wallets => {
+          const restored = wallets.get(chain.chainId);
+          if (restored) {
+            setWallet(restored);
+          }
+        })
+        .catch((err) => {
+          console.warn("Failed to auto-reconnect: ", err);
+          localStorage.removeItem(STORAGE_KEY);
+        })
+        .finally(() => {
+          setConnecting(false);
+        });
+    }
+  }, [controller, chain]);
+
+  useEffect(() => {
     controller.onAccountChange((wlts) => {
       const updated = wlts.find(w => w.chainId === chain.chainId);
       if (updated) {
@@ -167,6 +190,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
     async (tx, feeMultiplier = 1.4) => {
       if (!wallet) throw new Error("Wallet not connected");
       try {
+        console.log("TOAST", "Broadcasting transaction...");
         setToastStatus("pending");
         const result = await wallet.broadcastTxSync(tx, feeMultiplier);
         setToastStatus("success");
@@ -182,14 +206,14 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
   );
 
   const value: WalletContextValue = useMemo(
-    () => ({ connected, connectedAddr, broadcast, connect, disconnect }),
-    [connected, connectedAddr, broadcast, connect, disconnect],
+    () => ({ connected, connectedAddr, broadcast, connect, disconnect, chain }),
+    [connected, connectedAddr, broadcast, connect, disconnect, chain],
   );
 
   return (
     <WalletContext.Provider value={value}>
-      {children}
-      <Toast status={toastStatus} />
+      { toastStatus && <Toast status={toastStatus} /> }
+      { (localStorage.getItem(STORAGE_KEY) && !connected) ? <></> : children }
       {showModal && <Modal onSelect={handleSelect} connecting={connecting} />}
     </WalletContext.Provider>
   );
