@@ -233,6 +233,35 @@ function Game({ gameAddress }: GameProps) {
     });
   }
 
+  function handleGiveUp() {
+    if (!gameAddress || !connectedAddr) return;
+    if (!gameInfo) return;
+    if (!isPlayerTurn(gameInfo, connectedAddr)) return;
+    const msg = {
+      give_up: {}
+    };
+
+    const tx = {
+      msgs: [
+        new MsgExecuteContract({
+          sender: connectedAddr,
+          contract: gameAddress,
+          funds: [],
+          msg: msg,
+        })
+      ]
+    };
+
+    broadcast(tx as UnsignedTx).then((result) => {
+      console.log("Give up transaction broadcasted successfully:", result);
+      alert("You have given up the game.");
+      triggerReload();
+    }).catch((error) => {
+      console.error("Error broadcasting give up transaction:", error);
+      alert("Error giving up the game: " + error.message);
+    });
+  }
+
   return (
     <>
 
@@ -311,7 +340,7 @@ function Game({ gameAddress }: GameProps) {
                 <Card variant="outlined" sx={{ padding: '15px', width: '100%', flexGrow: 1, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                   <Typography sx={{ marginBottom: '5px' }}><b>Actions:</b></Typography>
                   <Box sx={{ display: 'flex', flexDirection: 'row' }}>
-                    <Button variant="contained" color="error" sx={{ marginTop: '15px', width: '50%', marginRight: '5px' }}>Give Up</Button>
+                    <Button variant="contained" color="error" sx={{ marginTop: '15px', width: '50%', marginRight: '5px' }} onClick={() => handleGiveUp()} disabled={!gameInfo || !isPlayerTurn(gameInfo, connectedAddr)}>Give Up</Button>
                     <Button variant="contained" color="primary" sx={{ marginTop: '15px', width: '50%' }}>Offer Draw</Button>
                     <Button variant="contained" color="secondary" sx={{ marginTop: '15px', width: '50%', marginLeft: '5px' }} onClick={() => handleShare()}>Share</Button>
                   </Box>
