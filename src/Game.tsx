@@ -84,6 +84,7 @@ function Game({ gameAddress }: GameProps) {
   const promotionPiece = useRef<string>('');
 
   const [ checkSquare, setCheckSquare ] = useState<Square | null>(null);
+  const [ lastMove, setLastMove ] = useState<string | null>(null);
 
   const [fetchingGameInfo, setFetchingGameInfo] = useState(true);
   const [invalidGameInfo, setInvalidGameInfo] = useState(false);
@@ -97,6 +98,24 @@ function Game({ gameAddress }: GameProps) {
     setReload(reload + 1);
     console.log("Reload triggered, current reload count:", reload);
   }
+
+  // last move effect
+  useEffect(() => {
+    const query = { last_move: {} };
+    fetchContractStateSmart(gameAddress || "", query)
+      .then((data: string) => {
+        console.log(data)
+        if (data) {
+          setLastMove(data);
+        } else {
+          setLastMove(null);
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching last move:", error);
+        setLastMove(null);
+      });
+  }, [gameAddress, reload]);
 
   // check indicator
   // show check indicator if player is in check
@@ -335,7 +354,7 @@ function Game({ gameAddress }: GameProps) {
                 </Card>
                 <Card variant="outlined" sx={{ marginBottom: '15px', padding: '15px', width: '100%', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                   <Typography sx={{ marginBottom: '5px' }}><b>Last Move:</b></Typography>
-                  <Typography>e2e4</Typography>
+                  <Typography>{lastMove || "No last move available"}</Typography>
                 </Card>
                 <Card variant="outlined" sx={{ padding: '15px', width: '100%', flexGrow: 1, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                   <Typography sx={{ marginBottom: '5px' }}><b>Actions:</b></Typography>
