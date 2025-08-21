@@ -13,6 +13,11 @@ interface GameProps {
   gameAddress?: string;
 }
 
+interface CheckIndicator {
+  isCheck: boolean;
+  kingSquare: Square | null;
+}
+
 function isPlayer(info: GameInfo, connectedAddr: string | undefined): boolean {
   if (!connectedAddr) return false;
   return info.players.includes(connectedAddr);
@@ -44,11 +49,46 @@ function getPlayersColor(info: GameInfo, address: string): "white" | "black" | "
   return "neither";
 }
 
+function getKingSquare(game: Chess, color: 'w' | 'b'): Square | null {
+  const board = game.board();
+  if (!board) return null;
+  for (const row of board) {
+    for (const piece of row) {
+      if (piece && piece.type === 'k' && piece.color === color) {
+        return piece.square;
+      }
+    }
+  }
+  return null;
+}
+
+function getCheckIndicator(game: Chess): Square | null {
+  const switchedFen = game.fen().replace(/\b[w|b]\b/, (match) => match === 'w' ? 'b' : 'w');
+  console.log("Original FEN for check detection:", game.fen());
+  console.log("Switched FEN for check detection:", switchedFen);
+  const switchedGame = new Chess(switchedFen, { skipValidation: true });
+  const switchedTurn = switchedGame.turn() as 'w' | 'b';
+  console.log("Switched turn for check detection:", switchedTurn);
+  const nonSwitchedTurn = switchedTurn === 'w' ? 'b' : 'w';
+  console.log("Non-switched turn for check detection:", nonSwitchedTurn);
+  if (switchedGame.inCheck()) {
+    console.log("Switched game is in check for turn:", switchedTurn);
+    return getKingSquare(game, switchedTurn);
+  } else if (game.inCheck()) {
+    console.log("Non-switched game is in check for turn:", nonSwitchedTurn);
+    return getKingSquare(game, nonSwitchedTurn);
+  } else {
+    return null;
+  }
+}
+
 function Game({ gameAddress }: GameProps) {
 
   const [reload, setReload] = useState(0);
   const [fen, setFen] = useState("start");
   const promotionPiece = useRef<string>('');
+
+  const [ checkSquare, setCheckSquare ] = useState<Square | null>(null);
 
   const [fetchingGameInfo, setFetchingGameInfo] = useState(true);
   const [invalidGameInfo, setInvalidGameInfo] = useState(false);
@@ -62,6 +102,18 @@ function Game({ gameAddress }: GameProps) {
     setReload(reload + 1);
     console.log("Reload triggered, current reload count:", reload);
   }
+
+  // check indicator
+  // show check indicator if player is in check
+  // and is their turn
+  useEffect(() => {
+    console.log("HHHHHHHHHHHHHAHHHHHHHHHHHHHHH");
+    if (!gameInfo || !connectedAddr) return;
+    const game = new Chess(fen, { skipValidation: true });
+    console.log("Connected address:", connectedAddr, "Game info players:", gameInfo.players);
+    console.log(getCheckIndicator(game));
+    setCheckSquare(getCheckIndicator(game));
+  }, [fen, gameAddress, connectedAddr])
 
   useEffect(() => {
     setTimeout(() => {
@@ -173,6 +225,19 @@ function Game({ gameAddress }: GameProps) {
 
   }
 
+  function handleShare() {
+    if (!gameAddress) return;
+    const url = `${window.location.origin}/game/${gameAddress}`;
+    const encodedUrl = encodeURIComponent(url);
+    const keplrUrl = `keplrwallet://browser?url=${encodedUrl}`;
+    navigator.clipboard.writeText(keplrUrl).then(() => {
+      alert("Game link copied to clipboard: " + url);
+    }).catch((err) => {
+      console.error("Failed to copy game link:", err);
+      alert("Failed to copy game link.");
+    });
+  }
+
   return (
     <>
 
@@ -198,6 +263,7 @@ function Game({ gameAddress }: GameProps) {
                   }
                   boardOrientation={gameInfo ? boardOrientation(gameInfo, connectedAddr) : "white"}
                   boardWidth={610}
+                  customSquareStyles={checkSquare ? { [checkSquare]: { backgroundColor: 'rgba(255, 0, 0, 0.3)' } } : {}}
                 />
               </Box>
               <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', minWidth: '400px' }}>
@@ -252,6 +318,7 @@ function Game({ gameAddress }: GameProps) {
                   <Box sx={{ display: 'flex', flexDirection: 'row' }}>
                     <Button variant="contained" color="error" sx={{ marginTop: '15px', width: '50%', marginRight: '5px' }}>Give Up</Button>
                     <Button variant="contained" color="primary" sx={{ marginTop: '15px', width: '50%' }}>Offer Draw</Button>
+                    <Button variant="contained" color="secondary" sx={{ marginTop: '15px', width: '50%', marginLeft: '5px' }} onClick={() => handleShare()}>Share</Button>
                   </Box>
                 </Card>
               </Box>
