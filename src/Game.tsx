@@ -13,11 +13,6 @@ interface GameProps {
   gameAddress?: string;
 }
 
-interface CheckIndicator {
-  isCheck: boolean;
-  kingSquare: Square | null;
-}
-
 function isPlayer(info: GameInfo, connectedAddr: string | undefined): boolean {
   if (!connectedAddr) return false;
   return info.players.includes(connectedAddr);
