@@ -77,6 +77,16 @@ function getCheckIndicator(game: Chess): Square | null {
   }
 }
 
+function splitLastMoveUCI(uci: string): { from: Square, to: Square, promotion?: string } {
+  if (uci.length < 4) {
+    throw new Error("Invalid UCI string: " + uci);
+  }
+  const from = uci.slice(0, 2) as Square;
+  const to = uci.slice(2, 4) as Square;
+  const promotion = uci.length > 4 ? uci[4] : undefined;
+  return { from, to, promotion };
+}
+
 function Game({ gameAddress }: GameProps) {
 
   const [reload, setReload] = useState(0);
@@ -85,6 +95,8 @@ function Game({ gameAddress }: GameProps) {
 
   const [ checkSquare, setCheckSquare ] = useState<Square | null>(null);
   const [ lastMove, setLastMove ] = useState<string | null>(null);
+  const [ fromSquare, setFromSquare ] = useState<Square | null>(null);
+  const [ toSquare, setToSquare ] = useState<Square | null>(null);
 
   const [fetchingGameInfo, setFetchingGameInfo] = useState(true);
   const [invalidGameInfo, setInvalidGameInfo] = useState(false);
@@ -106,16 +118,21 @@ function Game({ gameAddress }: GameProps) {
       .then((data: string) => {
         console.log(data)
         if (data) {
+          const { from, to, promotion } = splitLastMoveUCI(data);
           setLastMove(data);
+          setFromSquare(from);
+          setToSquare(to);
         } else {
           setLastMove(null);
+          setFromSquare(null);
+          setToSquare(null);
         }
       })
       .catch((error) => {
         console.error("Error fetching last move:", error);
         setLastMove(null);
       });
-  }, [gameAddress, reload]);
+  }, [fen, gameAddress, reload]);
 
   // check indicator
   // show check indicator if player is in check
@@ -306,7 +323,19 @@ function Game({ gameAddress }: GameProps) {
                   }
                   boardOrientation={gameInfo ? boardOrientation(gameInfo, connectedAddr) : "white"}
                   boardWidth={610}
-                  customSquareStyles={checkSquare ? { [checkSquare]: { backgroundColor: 'rgba(255, 0, 0, 0.3)' } } : {}}
+                  customSquareStyles={
+                    [{sq: checkSquare, type: 'check'}, {sq: fromSquare, type: 'move'}, {sq: toSquare, type: 'move'}].reduce((acc, square) => {
+                      if (!square.sq) {
+                        return acc;
+                      }
+                      if (square.type === 'check') {
+                        acc[square.sq] = { backgroundColor: 'rgba(255, 0, 0, 0.5)' };
+                      } else if (square.type === 'move') {
+                        acc[square.sq] = { backgroundColor: 'rgba(0, 255, 0, 0.3)' };
+                      }
+                      return acc;
+                    }, {} as Record<string, React.CSSProperties>)
+                  }
                 />
               </Box>
               <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', minWidth: '400px' }}>
@@ -351,10 +380,6 @@ function Game({ gameAddress }: GameProps) {
                       ) : "Loading..."
                     }
                   </Typography>
-                </Card>
-                <Card variant="outlined" sx={{ marginBottom: '15px', padding: '15px', width: '100%', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-                  <Typography sx={{ marginBottom: '5px' }}><b>Last Move:</b></Typography>
-                  <Typography>{lastMove || "No last move available"}</Typography>
                 </Card>
                 <Card variant="outlined" sx={{ padding: '15px', width: '100%', flexGrow: 1, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                   <Typography sx={{ marginBottom: '5px' }}><b>Actions:</b></Typography>
