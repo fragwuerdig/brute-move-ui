@@ -1,12 +1,13 @@
 import { AppBar, Box, Toolbar, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import './Head.css';
 
-export function Head({ children }: { children?: React.ReactNode }) {
+function Head({ children }: { children?: React.ReactNode }) {
     const navigate = useNavigate();
 
     return (
         <>
-            <Box height={130}>
+            <Box className="top-gutter">
                 <AppBar>
                     <Toolbar variant="dense">
                         <Box height={75} alignItems={"center"} display="flex">
@@ -17,19 +18,11 @@ export function Head({ children }: { children?: React.ReactNode }) {
                     </Toolbar>
                 </AppBar>
             </Box>
-            <Box
-                className="main-content"
-                sx={{
-                    width: `calc(100vw - 130px)`,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    marginLeft: 'auto',
-                    marginRight: 'auto',
-                }}
-            >
+            <Box className="main-content">
                 {children}
             </Box>
         </>
     );
 }
+
+export default Head;

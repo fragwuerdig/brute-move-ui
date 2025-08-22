@@ -2,7 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import Home from "./Home";
 import GameRoute from "./GameRoute";
 import { Button, Card, Typography } from "@mui/material";
-import { Head } from "./Head";
+import Head from "./Head";
 import { useWallet } from "./WalletProvider";
 import Create from "./Create";
 import JoinRoute from "./JoinRoute";

@@ -2,6 +2,16 @@ import type { ChainInfo } from "@goblinhunt/cosmes/wallet";
 
 const REBEL_FACTORY = 'terra1wkfz33ygkgq2akd9kmp7fzsstrwr9f0zcarnaka3mwf48xxvv64qz6dpvd'
 
+export function addressEllipsis(address: string): string {
+  const parts = address.split('1');
+  if (parts.length !== 2 || parts[1].length < 8) return address;
+  console.log("Ellipsis", address, parts);
+  console.log("Ellipsis BLAAAA", parts[1].slice(0, 4), parts[1].slice(-5, -1));
+  let str = `terra1${parts[1].slice(0, 4)}...${parts[1].slice(-5, -1)}`;
+  console.log("Ellipsis Result", str);
+  return `terra1...${parts[1].slice(-6, -1)}`;
+}
+
 export function fetchContractStateSmart(gameAddress: string, query: any): Promise<any> {
 
   let queryBase64 = btoa(JSON.stringify(query));

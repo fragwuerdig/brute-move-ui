@@ -1,0 +1,28 @@
+.main-content {
+    width: calc(100vw - 130px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-left: auto;
+    margin-right: auto;     
+}
+
+.top-gutter {
+    height: 100px;
+    width: 100%;
+}
+
+@media (max-width: 600px) {
+    .main-content {
+        width: calc(100vw - 50px);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-left: auto;
+        margin-right: auto;    
+    }
+    .top-gutter {
+        height: 75px;
+        width: 100%;
+    }
+}
