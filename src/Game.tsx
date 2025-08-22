@@ -94,7 +94,6 @@ function Game({ gameAddress }: GameProps) {
   const promotionPiece = useRef<string>('');
 
   const [ checkSquare, setCheckSquare ] = useState<Square | null>(null);
-  const [ lastMove, setLastMove ] = useState<string | null>(null);
   const [ fromSquare, setFromSquare ] = useState<Square | null>(null);
   const [ toSquare, setToSquare ] = useState<Square | null>(null);
 
@@ -118,19 +117,16 @@ function Game({ gameAddress }: GameProps) {
       .then((data: string) => {
         console.log(data)
         if (data) {
-          const { from, to, promotion } = splitLastMoveUCI(data);
-          setLastMove(data);
+          const { from, to } = splitLastMoveUCI(data);
           setFromSquare(from);
           setToSquare(to);
         } else {
-          setLastMove(null);
           setFromSquare(null);
           setToSquare(null);
         }
       })
       .catch((error) => {
         console.error("Error fetching last move:", error);
-        setLastMove(null);
       });
   }, [fen, gameAddress, reload]);
 
