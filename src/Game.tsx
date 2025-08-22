@@ -59,18 +59,12 @@ function getKingSquare(game: Chess, color: 'w' | 'b'): Square | null {
 
 function getCheckIndicator(game: Chess): Square | null {
   const switchedFen = game.fen().replace(/\b[w|b]\b/, (match) => match === 'w' ? 'b' : 'w');
-  console.log("Original FEN for check detection:", game.fen());
-  console.log("Switched FEN for check detection:", switchedFen);
   const switchedGame = new Chess(switchedFen, { skipValidation: true });
   const switchedTurn = switchedGame.turn() as 'w' | 'b';
-  console.log("Switched turn for check detection:", switchedTurn);
   const nonSwitchedTurn = switchedTurn === 'w' ? 'b' : 'w';
-  console.log("Non-switched turn for check detection:", nonSwitchedTurn);
   if (switchedGame.inCheck()) {
-    console.log("Switched game is in check for turn:", switchedTurn);
     return getKingSquare(game, switchedTurn);
   } else if (game.inCheck()) {
-    console.log("Non-switched game is in check for turn:", nonSwitchedTurn);
     return getKingSquare(game, nonSwitchedTurn);
   } else {
     return null;
@@ -107,7 +101,6 @@ function Game({ gameAddress }: GameProps) {
 
   function triggerReload() {
     setReload(reload + 1);
-    console.log("Reload triggered, current reload count:", reload);
   }
 
   // last move effect
@@ -115,7 +108,6 @@ function Game({ gameAddress }: GameProps) {
     const query = { last_move: {} };
     fetchContractStateSmart(gameAddress || "", query)
       .then((data: string) => {
-        console.log(data)
         if (data) {
           const { from, to } = splitLastMoveUCI(data);
           setFromSquare(from);
@@ -130,21 +122,15 @@ function Game({ gameAddress }: GameProps) {
       });
   }, [fen, gameAddress, reload]);
 
-  // check indicator
-  // show check indicator if player is in check
-  // and is their turn
+  // check indication effect
   useEffect(() => {
-    console.log("HHHHHHHHHHHHHAHHHHHHHHHHHHHHH");
     if (!gameInfo || !connectedAddr) return;
     const game = new Chess(fen, { skipValidation: true });
-    console.log("Connected address:", connectedAddr, "Game info players:", gameInfo.players);
-    console.log(getCheckIndicator(game));
     setCheckSquare(getCheckIndicator(game));
   }, [fen, gameAddress, connectedAddr])
 
   useEffect(() => {
     setTimeout(() => {
-      console.log("polling = ", polling.current);
       if (polling.current) {
         setReload(reload + 1);
       }
@@ -152,7 +138,6 @@ function Game({ gameAddress }: GameProps) {
   }, [reload, polling]);
 
   useEffect(() => {
-    console.log("Game component mounted with address:", gameAddress);
     fetchContractStateSmart(gameAddress || "", { game_info: {} })
       .catch(() => {
         setInvalidGameInfo(true);
@@ -165,7 +150,6 @@ function Game({ gameAddress }: GameProps) {
           return;
         }
         let newGame = new Chess(data.board, { skipValidation: false });
-        console.log("Fetched game info:", data);
         setFetchingGameInfo(false);
         setInvalidGameInfo(false);
         setDraggable(true);
@@ -179,12 +163,12 @@ function Game({ gameAddress }: GameProps) {
       promotionPiece.current = 'q';
       return true
     }
-    const base = piece[1].toLowerCase(); // z. B. "Q" → "q"
+    const base = piece[1].toLowerCase();
     promotionPiece.current = base;
     return true;
   }
 
-  function onDrop(sourceSquare: Square, targetSquare: Square, piece: Piece): boolean {
+  function onDrop(sourceSquare: Square, targetSquare: Square, _piece: Piece): boolean {
 
     polling.current = false;
 
@@ -197,7 +181,6 @@ function Game({ gameAddress }: GameProps) {
     var result;
     var game = new Chess(fen, { skipValidation: true });
     try {
-      console.log(game);
       result = game.move(move);
     } catch (error) {
       console.error("Ungültiger Zug:", error);
@@ -213,7 +196,6 @@ function Game({ gameAddress }: GameProps) {
     let oldFen = fen;
     setFen(game.fen());
     setDraggable(false);
-    console.log(`Zug ${piece} von ${sourceSquare} nach ${targetSquare}`);
 
     const uci = move.from + move.to + move.promotion;
     const msg = {
@@ -221,8 +203,6 @@ function Game({ gameAddress }: GameProps) {
         uci: uci,
       }
     };
-
-    console.log("Attempting move:", move, "with message:", msg, "uci:", uci);
 
     const tx = {
       msgs: [
@@ -235,8 +215,7 @@ function Game({ gameAddress }: GameProps) {
       ]
     };
 
-    broadcast(tx as UnsignedTx).then((result) => {
-      console.log("Transaction broadcasted successfully:", result);
+    broadcast(tx as UnsignedTx).then((_result) => {
       setDraggable(true);
       triggerReload();
     }).catch((error) => {
@@ -284,8 +263,7 @@ function Game({ gameAddress }: GameProps) {
       ]
     };
 
-    broadcast(tx as UnsignedTx).then((result) => {
-      console.log("Give up transaction broadcasted successfully:", result);
+    broadcast(tx as UnsignedTx).then((_result) => {
       alert("You have given up the game.");
       triggerReload();
     }).catch((error) => {
