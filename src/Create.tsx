@@ -1,16 +1,17 @@
 
-import { Box, Card, Divider, Modal, Typography } from '@mui/material';
-import { useState } from 'react';
+import { Box, Card, Divider, Modal, TextField, Typography } from '@mui/material';
+import { useEffect, useState } from 'react';
 import { Button, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio } from '@mui/material';
 import { MsgExecuteContract } from '@goblinhunt/cosmes/client';
 import type { UnsignedTx } from '@goblinhunt/cosmes/wallet';
-import { getFactoryAddr } from './Common';
+import { fetchBankBalance, fetchContractStateSmart, getFactoryAddr } from './Common';
 import { useWallet } from './WalletProvider';
 
 interface CreatedModal {
   open: boolean;
   closable?: boolean;
   message: string;
+  redirect?: string;
 }
 
 function Create() {
@@ -19,18 +20,70 @@ function Create() {
   const { connectedAddr, broadcast, chain } = useWallet();
   const [modal, setModal] = useState<CreatedModal>({ open: false, message: '', closable: true });
 
+  const [betAmount, setBetAmount] = useState<number>(0);
+  const [minBetAmount, setMinBetAmount] = useState(1);
+  const [disabledButton, setDisabledButton] = useState(false);
+  const [disabledText, setDisabledText] = useState('');
+
+  const [ refresh, setRefresh ] = useState(0);
+
+  // fetch minimum bet amount
+  useEffect(() => {
+    let contractAddr = getFactoryAddr(chain);
+    let query = { minimum_bet: {} };
+    fetchContractStateSmart(contractAddr, query).then((data) => {
+      setMinBetAmount(data);
+    }).catch((error) => {
+      console.error("Error fetching minimum bet amount:", error);
+    });
+  }, [betAmount]);
+
+  // fetch user lunc balance
+  useEffect(() => {
+    fetchBankBalance(connectedAddr || "", 'uluna').then((data) => {
+      let balance = parseFloat(data);
+      if (isNaN(balance) || isNaN(minBetAmount) || isNaN(betAmount)) {
+        setDisabledButton(true);
+        setDisabledText('invalid NaN value');
+      } else if ( minBetAmount > balance ) {
+        setDisabledButton(true);
+        setDisabledText(`Minimum bet amount exceeds your balance. Your balance is ${balance} $LUNC`);
+      } else if ( balance < betAmount) {
+        setDisabledButton(true);
+        setDisabledText(`Insufficient balance. Your balance is ${balance} $LUNC`);
+      } else if ( minBetAmount > betAmount) {
+        setDisabledButton(true);
+        setDisabledText(`Minimum bet amount is ${minBetAmount} $LUNC`);
+      } else {
+        setDisabledButton(false);
+        setDisabledText('');
+      }
+    }).catch((error) => {
+      console.error("Error fetching user balance:", error);
+    });
+  }, [refresh, betAmount, connectedAddr]);
+
+  // refresh every 60 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setRefresh(prev => prev + 1);
+    }, 6000);
+    return () => clearInterval(interval);
+  }, [refresh]);
+
   const handleOnClickCreate = (sender: string) => {
     let msg = {
       create_joinable_game: {
         with_color: color === 'Random' ? null : color,
       }
     }
+    let bet = `${betAmount}000000`
     let tx: UnsignedTx = {
       msgs: [
         new MsgExecuteContract({
           sender: sender,
           contract: getFactoryAddr(chain),
-          funds: [],
+          funds: [{ denom: 'uluna', amount: bet }],
           msg
         }),
       ],
@@ -52,11 +105,11 @@ function Create() {
         }
         console.log("Game ID:", gameId);
         // Optionally, redirect to the new game or update the UI
-        setModal({ open: true, message: `Game created successfully! Share the ID ${gameId} with your partner.`, closable: true });
+        setModal({ open: true, message: `Game created successfully! Share the ID ${gameId} with your partner.`, closable: true, redirect: `/join/${gameId}` });
       })
       .catch((error) => {
         console.error("Error creating game:", error);
-        setModal({ open: true, message: 'Failed to create game. Please try again.', closable: true });
+        setModal({ open: true, message: `Failed to create game. ${error.message}`, closable: true });
       });
     
   };
@@ -65,12 +118,12 @@ function Create() {
     <>
       <Card sx={{ width: '60%', minWidth: '300px', padding: '20px', margin: '40px' }}>
         <Typography variant="h5" gutterBottom>
-          Create a New Game
+          Create a New Chess Challenge
         </Typography>
         <Divider sx={{ marginBottom: '30px' }} />
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <FormControl component="fieldset" sx={{ marginBottom: '20px' }}>
-            <FormLabel component="legend">Choose your color!<br />You will be assigned a unique ID that you can share with your game partner.</FormLabel>
+            <FormLabel component="legend">Choose your color! You will be assigned a unique ID that you can share with your challenger.</FormLabel>
             <RadioGroup
               value={color}
               onChange={(e) => setColor(e.target.value as 'White' | 'Black' | 'Random')}
@@ -81,8 +134,18 @@ function Create() {
               <FormControlLabel value="Black" control={<Radio />} label="Black" />
               <FormControlLabel value="Random" control={<Radio />} label="Random" />
             </RadioGroup>
+            <Divider sx={{ marginBottom: '30px', marginTop: '5px' }} />
+            <FormLabel component="legend">Choose an amount to bet on this challenge. Your opponent will bet against it! 10% betting fee. Min. bet amount currently sits at {minBetAmount} $LUNC</FormLabel>
+            <TextField
+              type="number"
+              variant="outlined"
+              placeholder="Bet Amount in $LUNC"
+              sx={{ marginTop: '10px' }}
+              onChange={(e) => { setBetAmount(parseInt(e.target.value)) }}
+            />
           </FormControl>
-          <Button disabled={!connectedAddr} variant="contained" onClick={() => handleOnClickCreate(connectedAddr || "")}>Create!</Button>
+          <Button disabled={!connectedAddr || disabledButton} variant="contained" onClick={() => handleOnClickCreate(connectedAddr || "")}>Create!</Button>
+          { disabledText && <Typography color="error">{disabledText}</Typography> }
         </Box>
       </Card>
       <Modal open={modal.open} onClose={() => setModal({ open: false, message: '' })}>
@@ -130,8 +193,20 @@ function Create() {
             >
               OK
             </Button>
+            
           )}
-          
+          {
+            modal.redirect && (
+              <Button
+                variant="contained"
+                onClick={() => {
+                  window.location.href = modal.redirect!;
+                }}
+              >
+                Go to Game
+              </Button>
+            )
+          }
         </Box>
       </Modal>
     </>

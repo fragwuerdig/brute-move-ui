@@ -1,10 +1,10 @@
 
-import { Box, Card, Divider, Modal, Typography } from '@mui/material';
+import { Box, Card, Divider, Modal, TextField, Typography } from '@mui/material';
 import { Button, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio } from '@mui/material';
 
-import { getFactoryAddr, type JoinableGame } from './Common';
+import { fetchBankBalance, fetchContractStateSmart, getFactoryAddr, type JoinableGame } from './Common';
 import { useWallet } from './WalletProvider';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { UnsignedTx } from '@goblinhunt/cosmes/wallet';
 import { MsgExecuteContract } from '@goblinhunt/cosmes/client';
 
@@ -26,8 +26,61 @@ function Join({ game }: JoinProps) {
   const { connectedAddr, chain, broadcast } = useWallet();
   const [color, setColor] = useState<'White' | 'Black' | 'Random'>('Random');
   const [modal, setModal] = useState<JoinedModal>({ open: false, message: '', closable: true });
+  const [ balance, setBalance ] = useState<number | null>(null);
+  const [ message, setMessage ] = useState<string>('');
   const navigate = useNavigate();
 
+  // refresh counter
+  const [ refresh, setRefresh ] = useState(0);
+  useEffect(() => {
+    const timer = setTimeout(() => setRefresh((r) => r + 1), 5000);
+    return () => clearTimeout(timer);
+  }, [refresh]);
+
+  // refresh joinable game data every 5 seconds
+  useEffect(() => {
+    if (!game || !chain) return;
+    fetchContractStateSmart(getFactoryAddr(chain), { joinable_game: { id: game.id } })
+      .then((data) => {
+        console.log("Fetched game data:", data);
+        if (data?.contract) {
+          // game is already deployed -> forward
+          navigate(`/games/${data.contract}`, { replace: true });
+        }
+        // still joinable, show join screen
+      })
+      .catch((error) => {
+        console.error("Error fetching game:", error);
+      });
+  }, [game, chain, navigate, refresh]);
+
+  // query the balance of the connectedAddr
+  useEffect(() => {
+    if (!connectedAddr) return;
+    fetchBankBalance(connectedAddr || "", 'uluna').then((data) => {
+      console.log("User balance:", data);
+      setBalance(data);
+    }).catch((error) => {
+      console.error("Error fetching bank balance:", error);
+    });
+  }, [connectedAddr]);
+
+  // check if the user can join this game
+  useEffect(() => {
+    if (!game || balance === null) return;
+    if ( game.opponent === connectedAddr ) {
+      setMessage("This is your own challenge, you cannot join it yourself. Wait for an opponent to join you.");
+      return;
+    }
+    if ( game.opponent_color === 'White' && color === 'White' ) {
+      setMessage("Your opponent already chose White, please choose Black or Random.");
+      return;
+    }
+    if ( balance < game.bet / 1000000 ) {
+      setMessage(`Your balance of ${balance} $LUNC is insufficient to cover the bet of ${game.bet/1000000} $LUNC.`);
+      return;
+    }
+  }, [game, balance, connectedAddr]);
 
   const handleOnClickJoin = (sender: string) => {
     if (!game) {
@@ -45,7 +98,7 @@ function Join({ game }: JoinProps) {
         new MsgExecuteContract({
           sender: sender,
           contract: getFactoryAddr(chain),
-          funds: [],
+          funds: [{ amount: game.bet.toString(), denom: 'uluna' }],
           msg
         }),
       ],
@@ -77,7 +130,7 @@ function Join({ game }: JoinProps) {
       })
       .catch((error) => {
         console.error("Error creating game:", error);
-        setModal({ open: true, message: 'Failed to create game. Please try again.', closable: true });
+        setModal({ open: true, message: `Failed to create game. ${error.message}.`, closable: true });
       });
   };
 
@@ -87,7 +140,7 @@ function Join({ game }: JoinProps) {
         game ? (
           <Card sx={{ width: '60%', minWidth: '300px', padding: '20px', margin: '40px' }}>
             <Typography variant="h5" gutterBottom>
-              Join a Game
+              Accept a Chess Challenge
             </Typography>
             <Divider sx={{ marginBottom: '30px' }} />
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -104,7 +157,14 @@ function Join({ game }: JoinProps) {
                   <FormControlLabel value="Random" control={<Radio />} label="Random" disabled={game.opponent_color === 'White' || game.opponent_color === 'Black'} />
                 </RadioGroup>
               </FormControl>
-              <Button disabled={!connectedAddr} variant="contained" onClick={() => handleOnClickJoin(connectedAddr || "")}>Join!</Button>
+              <Divider sx={{ marginBottom: '5px', marginTop: '5px' }} />
+              <FormLabel component="legend">Your opponent asks you to accept the challenge with the following bet :</FormLabel>
+              <TextField
+                value={`${game.bet / 1000000} $LUNC`}
+                disabled ={true}
+              />
+              <Button disabled={!connectedAddr || !!message} variant="contained" onClick={() => handleOnClickJoin(connectedAddr || "")}>Join!</Button>
+              { message && (<Typography variant="body1" color="error">{message}</Typography> )}
             </Box>
           </Card>
         ) : (
@@ -114,6 +174,7 @@ function Join({ game }: JoinProps) {
       <Modal open={modal.open} onClose={() => setModal({ open: false, message: '' })}>
         <Box
           sx={{
+            maxWidth: '80vw',
             position: 'absolute',
             top: '50%',
             left: '50%',
@@ -122,14 +183,13 @@ function Join({ game }: JoinProps) {
             boxShadow: 24,
             p: 4,
             borderRadius: 2,
-            minWidth: 300,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             gap: 2,
           }}
         >
-          <Typography variant="h6" sx={{ mb: 2, textAlign: 'center' }}>
+          <Typography variant="h6" sx={{ width: '100%', mb: 2, textAlign: 'center' }}>
             {modal.message.split(/(ID\s+\w+)/).map((part, idx) => {
               const match = part.match(/^ID\s+(\w+)/);
               if (match) {

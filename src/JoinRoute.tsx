@@ -1,27 +1,41 @@
 import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import Join from "./Join";
-import { useParams } from "react-router-dom";
 import { fetchContractStateSmart, getFactoryAddr, type JoinableGame } from "./Common";
 import { useWallet } from "./WalletProvider";
 
 function JoinRoute() {
-  
-  const {chain} = useWallet();
-  const { id } = useParams();
+  const navigate = useNavigate();
+  const { chain } = useWallet();
+  const { id } = useParams<{ id: string }>();
   const [game, setGame] = useState<JoinableGame | null>(null);
-  
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
-    fetchContractStateSmart(getFactoryAddr(chain), { joinable_game: { id: id } })
+    if (!id || !chain) return; // wait until both exist
+
+    setLoading(true);
+    fetchContractStateSmart(getFactoryAddr(chain), { joinable_game: { id } })
       .then((data) => {
-        console.log("Fetched joinable game data:", data);
-        setGame(data);
+        console.log("Fetched game data:", data);
+        if (data?.contract) {
+          // game is already deployed -> forward
+          navigate(`/games/${data.contract}`, { replace: true });
+        } else {
+          // still joinable, show join screen
+          setGame(data);
+        }
       })
       .catch((error) => {
         console.error("Error fetching game:", error);
-      });
-  }, [id]);
+      })
+      .finally(() => setLoading(false));
+  }, [id, chain, navigate]);
 
-  return <Join game={game} />;
+  if (loading) return <div>Loading…</div>;
+  if (!game) return <div>Game not found.</div>;
+
+  return <Join game={game}/>;
 }
 
 export default JoinRoute;

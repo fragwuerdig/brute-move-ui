@@ -148,34 +148,6 @@ const Home: React.FC = () => {
                 </List>
                 <Divider sx={{ margin: '30px 0' }} />
                 <Typography variant="h5" gutterBottom>
-                    Ongoing Games
-                </Typography>
-                <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: '20px', marginTop: '20px' }}>
-                    <TextField
-                        variant="outlined"
-                        label="Search by Contract Address"
-                        value={gameAddrSearchTerm}
-                        sx={{ flexGrow: 1 }}
-                        onChange={(e) => {
-                            const searchTerm = e.target.value.toLowerCase();
-                            onOngoingSearchHandler(searchTerm);
-                        }}
-                    />
-                    <Button
-                        variant='contained'
-                        disabled={fetchingGameInfo || invalidGameInfo}
-                        onClick={() => { onAddGameHandler() }}
-                    >
-                        {
-                            fetchingGameInfo ? 'Loading...' : '+'
-                        }
-                    </Button>
-                    <Button variant="outlined" onClick={() => navigate('/create')}>
-                        New Game
-                    </Button>
-                </Box>
-                <Divider sx={{ margin: '30px 0' }} />
-                <Typography variant="h5" gutterBottom>
                     Joinable Games
                 </Typography>
                 <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: '20px', marginTop: '20px' }}>
@@ -196,6 +168,13 @@ const Home: React.FC = () => {
                         Join
                     </Button>
                 </Box>
+                <Divider sx={{ margin: '30px 0' }} />
+                <Typography variant="h5" gutterBottom>
+                    Add a New Game
+                </Typography>
+                <Button variant="contained" onClick={() => navigate('/create')} sx={{ marginTop: '20px' }}>
+                    Create Game
+                </Button>
             </Card>
             <Dialog open={showAddGameModal} onClose={() => setShowAddGameModal(false)}>
                 <DialogTitle>Add New Game</DialogTitle>
