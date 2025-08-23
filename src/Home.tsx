@@ -1,7 +1,7 @@
 import { Box, Button, Card, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Divider, IconButton, List, ListItem, TextField, Typography } from '@mui/material';
 import React, { useEffect } from 'react';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { fetchContractStateSmart, getFactoryAddr, type GameInfo, type JoinableGame } from './Common';
+import { fetchContractStateSmart, getFactoryAddr, type JoinableGame } from './Common';
 import { useWallet } from './WalletProvider';
 
 import { useNavigate } from "react-router-dom";
@@ -19,8 +19,8 @@ const Home: React.FC = () => {
 
     const [reload, setReload] = React.useState<number>(0);
 
-    const [invalidGameInfo, setInvalidGameInfo] = React.useState<boolean>(true);
-    const [fetchingGameInfo, setFetchingGameInfo] = React.useState<boolean>(false);
+    //const [invalidGameInfo, setInvalidGameInfo] = React.useState<boolean>(true);
+    //const [fetchingGameInfo, setFetchingGameInfo] = React.useState<boolean>(false);
 
     const [invalidJoinableGame, setInvalidJoinableGame] = React.useState<boolean>(true);
     const [fetchingJoinableGame, setFetchingJoinableGame] = React.useState<boolean>(false);
@@ -44,8 +44,8 @@ const Home: React.FC = () => {
         setNewGameName("");
         setGameAddrSearchTerm("");
         setShowAddGameModal(false);
-        setInvalidGameInfo(true);
-        setFetchingGameInfo(false);
+        //setInvalidGameInfo(true);
+        //setFetchingGameInfo(false);
         
         // Save the new game to local storage
         const storedGames = JSON.parse(localStorage.getItem(STORE_KEY_SAVED_GAMES) || "[]") as SavedGame[];
@@ -58,26 +58,6 @@ const Home: React.FC = () => {
 
     const onClickPlayHandler = (addr: string) => {
         navigate(`/games/${addr}`);
-    };
-
-    const onOngoingSearchHandler = (searchTerm: string) => {
-        console.log("Searching for:", searchTerm);
-        setGameAddrSearchTerm(searchTerm);
-        fetchContractStateSmart(searchTerm || "", { game_info: {} })
-            .catch(() => {
-                setInvalidGameInfo(true);
-                setFetchingGameInfo(false);
-            })
-            .then((data: GameInfo) => {
-                if (!data || !data.board) {
-                    setInvalidGameInfo(true);
-                    setFetchingGameInfo(false);
-                    return;
-                }
-                console.log("Fetched game info:", data);
-                setFetchingGameInfo(false);
-                setInvalidGameInfo(false);
-            });
     };
 
     const onJoinableSearchHandler = (searchTerm: string) => {
@@ -103,11 +83,6 @@ const Home: React.FC = () => {
                 setJoinableGameId(data.id);
             });
 
-    };
-
-    const onAddGameHandler = () => {
-        // Implement logic to add a new game
-        setShowAddGameModal(true);
     };
 
     useEffect(() => {
