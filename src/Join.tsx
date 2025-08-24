@@ -96,7 +96,7 @@ function Join({ game }: JoinProps) {
         new MsgExecuteContract({
           sender: sender,
           contract: getFactoryAddr(chain),
-          funds: [{ amount: game.bet.toString(), denom: 'uluna' }],
+          funds: [],
           msg
         }),
       ],
