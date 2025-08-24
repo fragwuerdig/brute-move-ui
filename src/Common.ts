@@ -1,6 +1,6 @@
 import type { ChainInfo } from "@goblinhunt/cosmes/wallet";
 
-const REBEL_FACTORY = 'terra10mknh7zllytrcm6h5gz2qwmdnalcwyzlx3z8q70hfy2d5739fu3qw3xh83'
+const REBEL_FACTORY = 'terra1mdmmeflcdewtlf7ejecjy3njxd3qvegut3nyu2ghp6z4snmy87qs52vtls'
 
 export function addressEllipsis(address: string): string {
   const parts = address.split('1');

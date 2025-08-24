@@ -39,6 +39,7 @@ function Join({ game }: JoinProps) {
 
   // refresh joinable game data every 5 seconds
   useEffect(() => {
+    console.log("connectedAddr", connectedAddr);
     if (!game || !chain) return;
     fetchContractStateSmart(getFactoryAddr(chain), { joinable_game: { id: game.id } })
       .then((data) => {
@@ -52,7 +53,7 @@ function Join({ game }: JoinProps) {
       .catch((error) => {
         console.error("Error fetching game:", error);
       });
-  }, [game, chain, navigate, refresh]);
+  }, [connectedAddr, game, chain, navigate, refresh]);
 
   // query the balance of the connectedAddr
   useEffect(() => {
@@ -80,8 +81,42 @@ function Join({ game }: JoinProps) {
       setMessage(`Your balance of ${balance} $LUNC is insufficient to cover the bet of ${game.bet/1000000} $LUNC.`);
       return;
     }
+    setMessage('');
   }, [game, balance, connectedAddr]);
 
+  // retract a challenge
+  const handleOnClickRetract = (sender: string) => {
+    if (!game) {
+      console.error("No game to retract");
+      return;
+    }
+    let msg = {remove_unaccepted_challenge: { game_id: game.id }};
+    let tx: UnsignedTx = {
+      msgs: [
+        new MsgExecuteContract({
+          sender: sender,
+          contract: getFactoryAddr(chain),
+          funds: [{ amount: game.bet.toString(), denom: 'uluna' }],
+          msg
+        }),
+      ],
+      memo: "Retract a challenge ID " + game.id,
+    };
+    setModal({ open: true, message: 'Retracting challenge...', closable: false });
+    broadcast(tx)
+      .then((result) => {
+        console.log("Challenge retracted successfully:", result.txResponse);
+        setModal({ open: true, message: `Challenge ID ${game.id} retracted successfully.`, closable: true });
+        // Optionally, redirect to home or update the UI
+        navigate(`/`);
+      })
+      .catch((error) => {
+        console.error("Error retracting challenge:", error);
+        setModal({ open: true, message: `Failed to retract challenge. ${error.message}.`, closable: true });
+      });
+  };
+
+  // joining a challenge
   const handleOnClickJoin = (sender: string) => {
     if (!game) {
       console.error("No game to join");
@@ -164,6 +199,7 @@ function Join({ game }: JoinProps) {
                 disabled ={true}
               />
               <Button disabled={!connectedAddr || !!message} variant="contained" onClick={() => handleOnClickJoin(connectedAddr || "")}>Join!</Button>
+              <Button disabled={connectedAddr !== game.opponent} variant="contained" color="error" onClick={() => handleOnClickRetract(connectedAddr || "")}>Retract</Button>
               { message && (<Typography variant="body1" color="error">{message}</Typography> )}
             </Box>
           </Card>
