@@ -31,6 +31,7 @@ function canPlay(info: GameInfo, connectedAddr: string | undefined): boolean {
   if (!connectedAddr) return false;
   if (info.is_finished) return false;
   if (!isPlayerTurn(info, connectedAddr)) return false;
+  if (info.no_show || info.timeout) return false;
   return true;
 }
 
@@ -146,6 +147,8 @@ function Game({ gameAddress }: GameProps) {
           setFetchingGameInfo(false);
           return;
         }
+        console.log("GAAAAAAAAAAAAAAAAAAA")
+        console.log(data)
         let newGame = new Chess(data.board, { skipValidation: false });
         setFetchingGameInfo(false);
         setInvalidGameInfo(false);
@@ -281,26 +284,54 @@ function Game({ gameAddress }: GameProps) {
           ) : (
             <Box className="chess-game-container" >
 
-              <Box className="turn-indicator-container">
-                <Box sx={{ flex: 1, display: 'flex', flexDirection: 'row', justifyContent: 'space-between', overflow: 'hidden', gap: '5px' }}>
-                  <Card variant='outlined' className={gameInfo?.turn === 'white' ? 'grow-shrink' : ''} sx={{ borderRadius: '50px', overflow: 'visible', aspectRatio: '1/1', padding: '15px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }} />
-                  <Card variant="outlined" sx={{ flexGrow: 1,padding: '15px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-                    <Typography sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {gameInfo ? (connectedAddr == gameInfo.players[0] ? "You" : addressEllipsis(gameInfo.players[0])) : "Loading..."}
-                    </Typography>
-                  </Card>
-                </Box>
-                <Box sx={{ flex: 1, display: 'flex', flexDirection: 'row', justifyContent: 'space-between', overflow: 'hidden', gap: '5px' }}>
-                  <Card variant='outlined' className={gameInfo?.turn === 'black' ? 'grow-shrink' : ''} sx={{ borderRadius: '50px', overflow: 'visible', aspectRatio: '1/1', padding: '15px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', backgroundColor: 'black' }} />
-                  <Card variant="outlined" sx={{ flexGrow: 1, padding: '15px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-                    <Typography sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {gameInfo ? (connectedAddr == gameInfo.players[1] ? "You" : addressEllipsis(gameInfo.players[1])) : "Loading..."}
-                    </Typography>
-                  </Card>
-                </Box>
-              </Box>
+              {
+                !(gameInfo?.is_finished) ? (
+                    (!(gameInfo?.no_show || gameInfo?.timeout)) ? (
+                      <Box className="turn-indicator-container">
+                      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'row', justifyContent: 'space-between', overflow: 'hidden', gap: '5px' }}>
+                        <Card variant='outlined' className={gameInfo?.turn === 'white' ? 'grow-shrink' : ''} sx={{ borderRadius: '50px', overflow: 'visible', aspectRatio: '1/1', padding: '15px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }} />
+                        <Card variant="outlined" sx={{ flexGrow: 1, padding: '15px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                          <Typography sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {gameInfo ? (connectedAddr == gameInfo.players[0] ? "You" : addressEllipsis(gameInfo.players[0])) : "Loading..."}
+                          </Typography>
+                        </Card>
+                      </Box>
+                      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'row', justifyContent: 'space-between', overflow: 'hidden', gap: '5px' }}>
+                        <Card variant='outlined' className={gameInfo?.turn === 'black' ? 'grow-shrink' : ''} sx={{ borderRadius: '50px', overflow: 'visible', aspectRatio: '1/1', padding: '15px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', backgroundColor: 'black' }} />
+                        <Card variant="outlined" sx={{ flexGrow: 1, padding: '15px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                          <Typography sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {gameInfo ? (connectedAddr == gameInfo.players[1] ? "You" : addressEllipsis(gameInfo.players[1])) : "Loading..."}
+                          </Typography>
+                        </Card>
+                      </Box>
+                      </Box>
+                    ) : (
+                        <Card variant="outlined" sx={{ boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                          <Box sx={{ padding: '30px', display: 'flex', flexDirection: 'row', alignContent: 'center', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Typography>
+                              This game is over due to {gameInfo?.no_show ? "no show" : "move timeout"}.
+                            </Typography>
+                            <Button variant="contained" color="primary" sx={{ width: '100px' }}>
+                              Settle
+                            </Button>
+                          </Box>
+                        </Card>
+                    )
+                ) : (
+                    <Card variant="outlined" sx={{ boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                      <Box sx={{ padding: '30px', display: 'flex', flexDirection: 'row', alignContent: 'center', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Typography>
+                          This game is over. {gameInfo?.winner ? `Winner: ${addressEllipsis(gameInfo.winner)}` : "No winner."}
+                        </Typography>
+                        <Button variant="contained" color="primary" sx={{ width: '100px' }}>
+                          Settle
+                        </Button>
+                      </Box>
+                    </Card>
+                )
+              }
 
-              <Box sx={{ width: '100%', display: 'flex', flexDirection: 'row', justifyContent: 'center'  }}>
+              <Box sx={{ width: '100%', display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
                 <Chessboard
                   position={fen}
                   onPieceDrop={onDrop}
@@ -330,22 +361,10 @@ function Game({ gameAddress }: GameProps) {
               </Box>
 
               <Box sx={{ maxWidth: '100%', display: 'flex', flexDirection: 'column', boxSizing: 'border-box' }}>
-                <Card variant="outlined" sx={{ marginBottom: '15px', padding: '15px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-                  <Typography sx={{ marginBottom: '5px' }}><b>Game Status:</b></Typography>
-                  <Typography>
-                    {
-                      gameInfo ? (
-                        gameInfo.is_finished ? (
-                          gameInfo.winner ? `Game over, winner: ${gameInfo.winner} (${getPlayersColor(gameInfo, gameInfo.winner)})` : "It's a draw!"
-                        ) : "The game is ongoing"
-                      ) : "Loading..."
-                    }
-                  </Typography>
-                </Card>
                 <Card variant="outlined" sx={{ padding: '15px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                   <Typography sx={{ marginBottom: '5px' }}><b>Actions:</b></Typography>
                   <Box sx={{ display: 'flex', flexDirection: 'row' }}>
-                    <Button variant="contained" color="error" sx={{ marginTop: '15px', width: '50%', marginRight: '5px' }} onClick={() => handleGiveUp()} disabled={!gameInfo || !isPlayerTurn(gameInfo, connectedAddr)}>Give Up</Button>
+                    <Button variant="contained" color="error" sx={{ marginTop: '15px', width: '50%', marginRight: '5px' }} onClick={() => handleGiveUp()} disabled={ !gameInfo ? true : ( !canPlay(gameInfo, connectedAddr) )}>Give Up</Button>
                     <Button variant="contained" color="primary" sx={{ marginTop: '15px', width: '50%' }}>Offer Draw</Button>
                     <Button variant="contained" color="secondary" sx={{ marginTop: '15px', width: '50%', marginLeft: '5px' }} onClick={() => handleShare()}>Share</Button>
                   </Box>
