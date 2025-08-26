@@ -100,7 +100,7 @@ function Join({ game }: JoinProps) {
           msg
         }),
       ],
-      memo: "Retract a challenge ID " + game.id,
+      memo: "Retract challenge ID " + game.id,
     };
     setModal({ open: true, message: 'Retracting challenge...', closable: false });
     broadcast(tx)
