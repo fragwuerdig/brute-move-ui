@@ -92,7 +92,6 @@ function Create() {
     setModal({ open: true, message: 'Creating game...', closable: false });
     broadcast(tx)
       .then((result) => {
-        console.log("Game created successfully:", result.txResponse);
         let wasmEvents = result.txResponse.events.filter(event => event.type === 'wasm');
         if (wasmEvents.length === 0) {
           console.error("No wasm event found in transaction response");
@@ -103,7 +102,6 @@ function Create() {
           console.error("Game ID not found in transaction response");
           return;
         }
-        console.log("Game ID:", gameId);
         // Optionally, redirect to the new game or update the UI
         setModal({ open: true, message: `Game created successfully! Share the ID ${gameId} with your partner.`, closable: true, redirect: `/join/${gameId}` });
       })

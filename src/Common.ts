@@ -5,10 +5,7 @@ const REBEL_FACTORY = 'terra1mv9jq4ntvdc7fzkjv0wtjqx7qrhuzch8k2aedem4ac28za3pduu
 export function addressEllipsis(address: string): string {
   const parts = address.split('1');
   if (parts.length !== 2 || parts[1].length < 8) return address;
-  console.log("Ellipsis", address, parts);
-  console.log("Ellipsis BLAAAA", parts[1].slice(0, 4), parts[1].slice(-5, -1));
-  let str = `terra1${parts[1].slice(0, 4)}...${parts[1].slice(-5, -1)}`;
-  console.log("Ellipsis Result", str);
+  //let str = `terra1${parts[1].slice(0, 4)}...${parts[1].slice(-5, -1)}`;
   return `terra1...${parts[1].slice(-6, -1)}`;
 }
 

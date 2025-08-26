@@ -190,7 +190,6 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
     async (tx, feeMultiplier = 1.4) => {
       if (!wallet) throw new Error("Wallet not connected");
       try {
-        console.log("TOAST", "Broadcasting transaction...");
         setToastStatus("pending");
         const result = await wallet.broadcastTxSync(tx, feeMultiplier);
         setToastStatus("success");

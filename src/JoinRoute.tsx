@@ -17,7 +17,6 @@ function JoinRoute() {
     setLoading(true);
     fetchContractStateSmart(getFactoryAddr(chain), { joinable_game: { id } })
       .then((data) => {
-        console.log("Fetched game data:", data);
         if (data?.contract) {
           // game is already deployed -> forward
           navigate(`/games/${data.contract}`, { replace: true });

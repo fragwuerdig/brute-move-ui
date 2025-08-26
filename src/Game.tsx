@@ -147,7 +147,6 @@ function Game({ gameAddress }: GameProps) {
           setFetchingGameInfo(false);
           return;
         }
-        console.log("GAAAAAAAAAAAAAAAAAAA")
         console.log(data)
         let newGame = new Chess(data.board, { skipValidation: false });
         setFetchingGameInfo(false);
@@ -157,6 +156,26 @@ function Game({ gameAddress }: GameProps) {
         setGameInfo(data);
       });
   }, [gameAddress, connectedAddr, reload]);
+
+  function handleTimeoutSetting() {
+    const msg = { settle: {} };
+    const tx = {
+      msgs: [
+        new MsgExecuteContract({
+          sender: connectedAddr || "",
+          contract: gameAddress || "",
+          funds: [],
+          msg: msg,
+        })
+      ]
+    };
+    broadcast(tx as UnsignedTx).then((_result) => {
+      triggerReload();
+    }).catch((error) => {
+      console.error("Error broadcasting transaction:", error);
+      alert("Error broadcasting transaction: " + error.message);
+    })
+  }
 
   function onPromotionPieceSelect(piece?: PromotionPieceOption, _from?: Square, _to?: Square): boolean {
     if (!piece) {
@@ -311,7 +330,7 @@ function Game({ gameAddress }: GameProps) {
                             <Typography>
                               This game is over due to {gameInfo?.no_show ? "no show" : "move timeout"}.
                             </Typography>
-                            <Button variant="contained" color="primary" sx={{ width: '100px' }}>
+                            <Button variant="contained" color="primary" sx={{ width: '100px' }} onClick={() => handleTimeoutSetting()}>
                               Settle
                             </Button>
                           </Box>
@@ -323,9 +342,6 @@ function Game({ gameAddress }: GameProps) {
                         <Typography>
                           This game is over. {gameInfo?.winner ? `Winner: ${addressEllipsis(gameInfo.winner)}` : "No winner."}
                         </Typography>
-                        <Button variant="contained" color="primary" sx={{ width: '100px' }}>
-                          Settle
-                        </Button>
                       </Box>
                     </Card>
                 )

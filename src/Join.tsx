@@ -39,11 +39,9 @@ function Join({ game }: JoinProps) {
 
   // refresh joinable game data every 5 seconds
   useEffect(() => {
-    console.log("connectedAddr", connectedAddr);
     if (!game || !chain) return;
     fetchContractStateSmart(getFactoryAddr(chain), { joinable_game: { id: game.id } })
       .then((data) => {
-        console.log("Fetched game data:", data);
         if (data?.contract) {
           // game is already deployed -> forward
           navigate(`/games/${data.contract}`, { replace: true });
@@ -59,7 +57,6 @@ function Join({ game }: JoinProps) {
   useEffect(() => {
     if (!connectedAddr) return;
     fetchBankBalance(connectedAddr || "", 'uluna').then((data) => {
-      console.log("User balance:", data);
       setBalance(data);
     }).catch((error) => {
       console.error("Error fetching bank balance:", error);
@@ -104,8 +101,7 @@ function Join({ game }: JoinProps) {
     };
     setModal({ open: true, message: 'Retracting challenge...', closable: false });
     broadcast(tx)
-      .then((result) => {
-        console.log("Challenge retracted successfully:", result.txResponse);
+      .then((_result) => {
         setModal({ open: true, message: `Challenge ID ${game.id} retracted successfully.`, closable: true });
         // Optionally, redirect to home or update the UI
         navigate(`/`);
@@ -142,7 +138,6 @@ function Join({ game }: JoinProps) {
     setModal({ open: true, message: 'Joining game...', closable: false });
     broadcast(tx)
       .then((result) => {
-        console.log("Game joined successfully:", result.txResponse);
         let wasmEvents = result.txResponse.events.filter(event => event.type === 'instantiate');
         if (wasmEvents.length === 0) {
           console.error("No wasm event found in transaction response");
@@ -153,7 +148,6 @@ function Join({ game }: JoinProps) {
           console.error("Game ID not found in transaction response");
           return;
         }
-        console.log("Game ID:", gameId);
         
         // save game ID to local storage or state
         const storedGames = JSON.parse(localStorage.getItem(STORE_KEY_SAVED_GAMES) || "[]") as SavedGame[];

@@ -62,9 +62,6 @@ const Home: React.FC = () => {
 
     const onJoinableSearchHandler = (searchTerm: string) => {
         // Implement search logic here
-        console.log("Searching for joinable games:", searchTerm);
-        console.log("Factory address:", getFactoryAddr(chain));
-        console.log("Chain:", chain.chainId);
         fetchContractStateSmart(getFactoryAddr(chain), { joinable_game: { id: searchTerm } })
             .catch(() => {
                 setInvalidJoinableGame(true);
@@ -77,7 +74,6 @@ const Home: React.FC = () => {
                     setFetchingJoinableGame(false);
                     return;
                 }
-                console.log("Fetched joinable game info:", data);
                 setFetchingJoinableGame(false);
                 setInvalidJoinableGame(false);
                 setJoinableGameId(data.id);
@@ -87,7 +83,6 @@ const Home: React.FC = () => {
 
     useEffect(() => {
         // Initial fetch or setup can be done here if needed
-        console.log("Home component mounted");
         const storedGames = JSON.parse(localStorage.getItem(STORE_KEY_SAVED_GAMES) || "[]") as SavedGame[];
         setSavedGames(storedGames);
     }, [reload]);
