@@ -35,12 +35,12 @@ function canPlay(info: GameInfo, connectedAddr: string | undefined): boolean {
   return true;
 }
 
-function getPlayersColor(info: GameInfo, address: string): "white" | "black" | "neither" {
+/*function getPlayersColor(info: GameInfo, address: string): "white" | "black" | "neither" {
   if (!address) return "neither";
   if (info.players[0] === address) return "white";
   if (info.players[1] === address) return "black";
   return "neither";
-}
+}*/
 
 function getKingSquare(game: Chess, color: 'w' | 'b'): Square | null {
   const board = game.board();
