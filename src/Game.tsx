@@ -6,9 +6,11 @@ import type { Piece, PromotionPieceOption, Square } from 'react-chessboard/dist/
 import { useWallet } from './WalletProvider';
 import { MsgExecuteContract } from '@goblinhunt/cosmes/client';
 import type { UnsignedTx } from '@goblinhunt/cosmes/wallet';
-import { Box, Button, Card, Typography } from '@mui/material';
+import { Box, Button, Card, Modal, Typography } from '@mui/material';
 import { addressEllipsis, fetchContractStateSmart, type GameInfo } from './Common';
 import './Game.css';
+import Clock from './Clock';
+import { Checkbox } from '@mui/material';
 
 
 interface GameProps {
@@ -79,6 +81,18 @@ function splitLastMoveUCI(uci: string): { from: Square, to: Square, promotion?: 
   return { from, to, promotion };
 }
 
+function clockTimeLeft(game: GameInfo | null): { type: 'noshow' | 'move', time: number } {
+  if (!game) return { type: 'move', time: 0 };
+  if (game.is_finished || game.no_show || game.timeout) return { type: 'move', time: 0 };
+  if (game.fullmoves === 1 || game.fullmoves === 0) {
+    let secondsSinceCreation = game.game_start_timeout + game.created - Math.floor((Date.now() / 1000));
+    return { type: 'noshow', time: secondsSinceCreation };
+  } else {
+    let secondsSinceMove = game.move_timeout + game.last_move_time - Math.floor((Date.now() / 1000));
+    return { type: 'move', time: secondsSinceMove };
+  }
+}
+
 function Game({ gameAddress }: GameProps) {
 
   const [reload, setReload] = useState(0);
@@ -93,7 +107,11 @@ function Game({ gameAddress }: GameProps) {
   const [invalidGameInfo, setInvalidGameInfo] = useState(false);
   const [draggable, setDraggable] = useState(false);
   const [gameInfo, setGameInfo] = useState<GameInfo | null>(null);
+  const [drawDismissed, setDrawDismissed] = useState(false);
   const polling = useRef<boolean>(true);
+
+  const [offerDraw, setOfferDraw] = useState(false);
+  const [openDraw, setOpenDraw] = useState(false);
 
   const { connectedAddr, broadcast } = useWallet();
 
@@ -145,6 +163,7 @@ function Game({ gameAddress }: GameProps) {
         if (!data || !data.board) {
           setInvalidGameInfo(true);
           setFetchingGameInfo(false);
+          setOpenDraw(false);
           return;
         }
         console.log(data)
@@ -154,6 +173,7 @@ function Game({ gameAddress }: GameProps) {
         setDraggable(true);
         setFen(newGame.fen());
         setGameInfo(data);
+        setOpenDraw(data.open_draw_offer !== null && data.open_draw_offer !== connectedAddr);
       });
   }, [gameAddress, connectedAddr, reload]);
 
@@ -220,6 +240,7 @@ function Game({ gameAddress }: GameProps) {
     const msg = {
       move: {
         uci: uci,
+        offer_draw: offerDraw,
       }
     };
 
@@ -244,6 +265,8 @@ function Game({ gameAddress }: GameProps) {
       alert("Error broadcasting transaction: " + error.message);
     }).finally(() => {
       polling.current = true;
+      setOfferDraw(false);
+      setDrawDismissed(false);
     });
 
     return true;
@@ -252,10 +275,8 @@ function Game({ gameAddress }: GameProps) {
 
   function handleShare() {
     if (!gameAddress) return;
-    const url = `${window.location.origin}/game/${gameAddress}`;
-    const encodedUrl = encodeURIComponent(url);
-    const keplrUrl = `keplrwallet://browser?url=${encodedUrl}`;
-    navigator.clipboard.writeText(keplrUrl).then(() => {
+    const url = `${window.location.origin}/games/${gameAddress}`;
+    navigator.clipboard.writeText(url).then(() => {
       alert("Game link copied to clipboard: " + url);
     }).catch((err) => {
       console.error("Failed to copy game link:", err);
@@ -291,6 +312,10 @@ function Game({ gameAddress }: GameProps) {
     });
   }
 
+  function handleAcceptDraw() {
+    console.log("Accepting draw...");
+  }
+
   return (
     <>
 
@@ -305,8 +330,10 @@ function Game({ gameAddress }: GameProps) {
 
               {
                 !(gameInfo?.is_finished) ? (
-                    (!(gameInfo?.no_show || gameInfo?.timeout)) ? (
-                      <Box className="turn-indicator-container">
+                  (!(gameInfo?.no_show || gameInfo?.timeout)) ? (
+
+                    <Box className="turn-indicator-container">
+
                       <Box sx={{ flex: 1, display: 'flex', flexDirection: 'row', justifyContent: 'space-between', overflow: 'hidden', gap: '5px' }}>
                         <Card variant='outlined' className={gameInfo?.turn === 'white' ? 'grow-shrink' : ''} sx={{ borderRadius: '50px', overflow: 'visible', aspectRatio: '1/1', padding: '15px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }} />
                         <Card variant="outlined" sx={{ flexGrow: 1, padding: '15px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
@@ -315,6 +342,9 @@ function Game({ gameAddress }: GameProps) {
                           </Typography>
                         </Card>
                       </Box>
+
+                      <Clock seconds={clockTimeLeft(gameInfo).time} type={clockTimeLeft(gameInfo).type} />
+
                       <Box sx={{ flex: 1, display: 'flex', flexDirection: 'row', justifyContent: 'space-between', overflow: 'hidden', gap: '5px' }}>
                         <Card variant='outlined' className={gameInfo?.turn === 'black' ? 'grow-shrink' : ''} sx={{ borderRadius: '50px', overflow: 'visible', aspectRatio: '1/1', padding: '15px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', backgroundColor: 'black' }} />
                         <Card variant="outlined" sx={{ flexGrow: 1, padding: '15px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
@@ -323,27 +353,27 @@ function Game({ gameAddress }: GameProps) {
                           </Typography>
                         </Card>
                       </Box>
-                      </Box>
-                    ) : (
-                        <Card variant="outlined" sx={{ boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-                          <Box sx={{ padding: '30px', display: 'flex', flexDirection: 'row', alignContent: 'center', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <Typography>
-                              This game is over due to {gameInfo?.no_show ? "no show" : "move timeout"}.
-                            </Typography>
-                            <Button variant="contained" color="primary" sx={{ width: '100px' }} onClick={() => handleTimeoutSetting()}>
-                              Settle
-                            </Button>
-                          </Box>
-                        </Card>
-                    )
-                ) : (
+                    </Box>
+                  ) : (
                     <Card variant="outlined" sx={{ boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                       <Box sx={{ padding: '30px', display: 'flex', flexDirection: 'row', alignContent: 'center', justifyContent: 'space-between', alignItems: 'center' }}>
                         <Typography>
-                          This game is over. {gameInfo?.winner ? `Winner: ${addressEllipsis(gameInfo.winner)}` : "No winner."}
+                          This game is over due to {gameInfo?.no_show ? "no show" : "move timeout"}.
                         </Typography>
+                        <Button variant="contained" color="primary" sx={{ width: '100px' }} onClick={() => handleTimeoutSetting()}>
+                          Settle
+                        </Button>
                       </Box>
                     </Card>
+                  )
+                ) : (
+                  <Card variant="outlined" sx={{ boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                    <Box sx={{ padding: '30px', display: 'flex', flexDirection: 'row', alignContent: 'center', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography>
+                        This game is over. {gameInfo?.winner ? `Winner: ${addressEllipsis(gameInfo.winner)}` : "No winner."}
+                      </Typography>
+                    </Box>
+                  </Card>
                 )
               }
 
@@ -380,12 +410,69 @@ function Game({ gameAddress }: GameProps) {
                 <Card variant="outlined" sx={{ padding: '15px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                   <Typography sx={{ marginBottom: '5px' }}><b>Actions:</b></Typography>
                   <Box sx={{ display: 'flex', flexDirection: 'row' }}>
-                    <Button variant="contained" color="error" sx={{ marginTop: '15px', width: '50%', marginRight: '5px' }} onClick={() => handleGiveUp()} disabled={ !gameInfo ? true : ( !canPlay(gameInfo, connectedAddr) )}>Give Up</Button>
-                    <Button variant="contained" color="primary" sx={{ marginTop: '15px', width: '50%' }}>Offer Draw</Button>
+
+                    <Box sx={{ display: 'flex', alignItems: 'center', width: '50%', marginRight: '5px', marginTop: '15px' }}>
+                      <Checkbox
+                        checked={offerDraw}
+                        onChange={(e) => setOfferDraw(e.target.checked)}
+                        color="primary"
+                        disabled={!gameInfo || !canPlay(gameInfo, connectedAddr)}
+                      />
+                      <Typography sx={{ ml: 1 }}>Offer Draw</Typography>
+                    </Box>
+
+                    <Button variant="contained" color="error" sx={{ marginTop: '15px', width: '50%', marginRight: '5px' }} onClick={() => handleGiveUp()} disabled={!gameInfo ? true : (!canPlay(gameInfo, connectedAddr))}>Give Up</Button>
+                    
                     <Button variant="contained" color="secondary" sx={{ marginTop: '15px', width: '50%', marginLeft: '5px' }} onClick={() => handleShare()}>Share</Button>
                   </Box>
                 </Card>
               </Box>
+
+              <Modal
+                open={openDraw && !drawDismissed}
+                aria-labelledby="draw-offer-modal-title"
+                aria-describedby="draw-offer-modal-description"
+              >
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    width: 350,
+                    bgcolor: 'background.paper',
+                    border: '2px solid #000',
+                    boxShadow: 24,
+                    p: 4,
+                    borderRadius: 2,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                  }}
+                >
+                  <Typography id="draw-offer-modal-title" variant="h6" component="h2" sx={{ mb: 2 }}>
+                    Draw Offer
+                  </Typography>
+                  <Typography id="draw-offer-modal-description" sx={{ mb: 3 }}>
+                    Your opponent has offered a draw. Do you accept?
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 2 }}>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={() => handleAcceptDraw()}>
+                      Accept
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      color="secondary"
+                      onClick={() => { setDrawDismissed(true); }}
+                    >
+                      Decline
+                    </Button>
+                  </Box>
+                </Box>
+              </Modal>
 
             </Box>
           )

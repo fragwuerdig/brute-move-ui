@@ -65,6 +65,12 @@ export interface GameInfo {
   winner: string;
   no_show: boolean;
   timeout: boolean;
+  fullmoves: number;
+  created: number;
+  last_move_time: number;
+  move_timeout: number; // in seconds
+  game_start_timeout: number; // in seconds
+  open_draw_offer: string | null;
 }
 
 export interface JoinableGame {
