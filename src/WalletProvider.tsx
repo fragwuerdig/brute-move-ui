@@ -147,7 +147,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
   }, [chain, controller]);
 
   const connect = useCallback(async () => {
-    await ensureChainAddedKeplr();
+    await ensureChainAddedKeplr(chain.chainId);
     setShowModal(true);
   }, []);
 
