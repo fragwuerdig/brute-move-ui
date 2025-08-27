@@ -313,7 +313,31 @@ function Game({ gameAddress }: GameProps) {
   }
 
   function handleAcceptDraw() {
-    console.log("Accepting draw...");
+    if (!gameAddress || !connectedAddr) return;
+    if (!gameInfo) return;
+    if (!isPlayerTurn(gameInfo, connectedAddr)) return;
+    if (!canPlay(gameInfo, connectedAddr)) return;
+    const msg = { claim_draw: {} };
+
+    const tx = {
+      msgs: [
+        new MsgExecuteContract({
+          sender: connectedAddr,
+          contract: gameAddress,
+          funds: [],
+          msg: msg,
+        })
+      ]
+    };
+
+    broadcast(tx as UnsignedTx).then((_result) => {
+      setDrawDismissed(true);
+      alert("You have accepted the draw.");
+      triggerReload();
+    }).catch((error) => {
+      console.error("Error broadcasting accept draw transaction:", error);
+      alert("Error accepting the draw: " + error.message);
+    });
   }
 
   return (
