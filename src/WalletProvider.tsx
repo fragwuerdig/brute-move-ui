@@ -16,6 +16,7 @@ import {
   type UnsignedTx,
 } from "@goblinhunt/cosmes/wallet";
 import { createPortal } from "react-dom";
+import { ensureChainAddedKeplr } from "./AddTestnet";
 
 const WC_PROJECT_ID = 'e2d195872baa9e9701adee752166fbcf';
 
@@ -131,6 +132,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
   const handleSelect = useCallback(async (type: WalletType) => {
     setConnecting(true);
     controller.connect(type, [chain]).then((wallets) => {
+      console.log("Wallets after connect: ", wallets);
       localStorage.setItem(STORAGE_KEY, type);
       setWallet(wallets.get(chain.chainId));
       setToastStatus("success");
@@ -145,6 +147,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
   }, [chain, controller]);
 
   const connect = useCallback(async () => {
+    await ensureChainAddedKeplr();
     setShowModal(true);
   }, []);
 
