@@ -36,13 +36,13 @@ export async function ensureChainAddedKeplr(chain: string) {
   if (!UNSUPPORTED.some((val, _i, _arr) => val === chain)) {
     return;
   }
-  console.log("Ensuring Keplr chain is added: ", chain);
-  if (!("keplr" in window)) throw new Error("Keplr nicht gefunden");
+  
+  if (!("keplr" in window)){
+    console.error("Keplr not found");
+    return;
+  }
+  
   try{
-    if (!(window as any).keplr) {
-      // silently ignore if Keplr not installed - fallback to WC
-      return;
-    }
     await (window.keplr as any).experimentalSuggestChain(keplrChainInfos[chain]);
     await (window.keplr as any).enable(chain);
   } catch{
