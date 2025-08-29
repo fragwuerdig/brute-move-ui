@@ -69,6 +69,7 @@ function Join({ game }: JoinProps) {
   // check if the user can join this game
   useEffect(() => {
     if (!game || balance === null) return;
+    console.log(game.bet + game.fee, balance * 1000000);
     if ( game.opponent === connectedAddr ) {
       setMessage("This is your own challenge, you cannot join it yourself. Wait for an opponent to join you.");
       return;
@@ -77,8 +78,8 @@ function Join({ game }: JoinProps) {
       setMessage("Your opponent already chose White, please choose Black or Random.");
       return;
     }
-    if ( balance < game.bet / 1000000 ) {
-      setMessage(`Your balance of ${balance} $LUNC is insufficient to cover the bet of ${game.bet/1000000} $LUNC.`);
+    if ( balance < (game.bet + game.fee) / 1000000 ) {
+      setMessage(`Your balance of ${balance} $LUNC is insufficient to cover the bet + fee.`);
       return;
     }
     setMessage('');
@@ -132,7 +133,7 @@ function Join({ game }: JoinProps) {
         new MsgExecuteContract({
           sender: sender,
           contract: getFactoryAddr(chain),
-          funds: [{ amount: game.bet.toString(), denom: 'uluna' }],
+          funds: [{ amount: (game.bet + game.fee).toString(), denom: 'uluna' }],
           msg
         }),
       ],
@@ -199,6 +200,12 @@ function Join({ game }: JoinProps) {
                 value={`${game.bet / 1000000} $LUNC`}
                 disabled={true}
               />
+              <Typography variant="body2" color="textSecondary">
+                Betting fee: {game.fee / 1000000} $LUNC<br />
+                Total amount to send: {(game.bet + game.fee) / 1000000} $LUNC
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', flexDirection: 'row', gap: '10px', marginTop: '30px', justifyContent: 'center' }}>
               <StyledButton disabled={!connectedAddr || !!message} variant="contained" onClick={() => handleOnClickJoin(connectedAddr || "")}>Join!</StyledButton>
               <StyledButton disabled={connectedAddr !== game.opponent} variant="contained" color="error" onClick={() => handleOnClickRetract(connectedAddr || "")}>Retract</StyledButton>
               { message && (<Typography variant="body1" color="error">{message}</Typography> )}

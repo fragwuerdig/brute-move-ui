@@ -12,10 +12,12 @@ interface ActionCardProps {
     onRetreatClicked?: () => void;
     onShareClicked?: () => void;
     onSettleClicked?: () => void;
+    onClaimRewardClicked?: () => void;
     showSettle?: boolean;
+    showClaimReward?: boolean;
 }
 
-export function ActionCard({ offerDraw, variant, disabled, onChange, onRetreatClicked, onShareClicked, onSettleClicked, showSettle }: ActionCardProps) {
+export function ActionCard({ offerDraw, variant, disabled, onChange, onRetreatClicked, onShareClicked, onSettleClicked, onClaimRewardClicked, showSettle, showClaimReward }: ActionCardProps) {
     return (
         <div className={`${variant}`}>
             <LightCard sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
@@ -46,6 +48,15 @@ export function ActionCard({ offerDraw, variant, disabled, onChange, onRetreatCl
                             onClick={onSettleClicked}
                         >
                             Settle
+                        </StyledButton>
+                    }
+                    {
+                        showClaimReward && <StyledButton
+                            variant="contained"
+                            color="success"
+                            onClick={onClaimRewardClicked}
+                        >
+                            Distr. Reward
                         </StyledButton>
                     }
                     <StyledButton

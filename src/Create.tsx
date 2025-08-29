@@ -27,8 +27,22 @@ function Create() {
   const [minBetAmount, setMinBetAmount] = useState(1);
   const [disabledButton, setDisabledButton] = useState(false);
   const [disabledText, setDisabledText] = useState('');
+  const [fee, setFee] = useState(1);
 
   const [ refresh, setRefresh ] = useState(0);
+
+  // fetch the fees
+  useEffect(() => {
+    if (!chain) return;
+    let query = { fee: { bet: (betAmount*1000000).toString() } };
+    console.log(query)
+    fetchContractStateSmart(getFactoryAddr(chain), query).then((data) => {
+      setFee(parseFloat(data) / 1000000);
+    }).catch((error) => {
+      console.error("Error fetching fees:", error);
+      setFee(0);
+    });
+  }, [betAmount, chain]);
 
   // fetch minimum bet amount
   useEffect(() => {
@@ -80,7 +94,7 @@ function Create() {
         with_color: color === 'Random' ? null : color,
       }
     }
-    let bet = `${betAmount}000000`
+    let bet = `${betAmount + fee}000000`
     let tx: UnsignedTx = {
       msgs: [
         new MsgExecuteContract({
@@ -139,7 +153,7 @@ function Create() {
             </RadioGroup>
             <Divider sx={{ marginBottom: '30px', marginTop: '5px' }} />
             <Typography>
-              Choose an amount to bet on this challenge. Your opponent will bet against it! 10% betting fee. Min. bet amount currently sits at {minBetAmount} $LUNC
+              Choose an amount to bet on this challenge. 
             </Typography>
             <Input
               placeholder="Bet Amount in $LUNC"
@@ -147,6 +161,15 @@ function Create() {
               style={{  marginTop: '15px' }}
             />
           </FormControl>
+          {
+            (
+              <Typography variant="body2" color="textSecondary">
+                Betting fee: {fee.toFixed(6)} $LUNC
+                <br />
+                Minimum bet amount: {minBetAmount} $LUNC
+              </Typography>
+            )
+          }
           <StyledButton
             disabled={!connectedAddr || disabledButton}
             variant="contained"

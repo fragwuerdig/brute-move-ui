@@ -17,11 +17,14 @@ function JoinRoute() {
     setLoading(true);
     fetchContractStateSmart(getFactoryAddr(chain), { joinable_game: { id } })
       .then((data) => {
+        console.log(data);
         if (data?.contract) {
           // game is already deployed -> forward
           navigate(`/games/${data.contract}`, { replace: true });
         } else {
           // still joinable, show join screen
+          data.bet = parseInt(data.bet);
+          data.fee = parseInt(data.fee);
           setGame(data);
         }
       })

@@ -341,6 +341,30 @@ function Game({ gameAddress, variant }: GameProps) {
     });
   }
 
+  function handleClaimReward() {
+    if (!gameAddress || !connectedAddr) return;
+    if (!gameInfo) return;
+    if (!gameInfo.is_finished) return;
+    const msg = { claim_balance: {} };
+    const tx = {
+      msgs: [
+        new MsgExecuteContract({
+          sender: connectedAddr,
+          contract: gameAddress,
+          funds: [],
+          msg: msg,
+        })
+      ]
+    };
+    broadcast(tx as UnsignedTx).then((_result) => {
+      alert("You have claimed rewards.");
+      triggerReload();
+    }).catch((error) => {
+      console.error("Error broadcasting claim reward transaction:", error);
+      alert("Error claiming reward: " + error.message);
+    });
+  }
+
   return variant === 'compact' ? (
     <>
       {
@@ -373,7 +397,9 @@ function Game({ gameAddress, variant }: GameProps) {
         onRetreatClicked={() => handleGiveUp()}
         onShareClicked={() => handleShare()}
         onSettleClicked={() => handleSettlingAfterTimeout()}
-        showSettle={(gameInfo?.no_show || gameInfo?.timeout) && !gameInfo?.is_finished}
+        showSettle={ (gameInfo?.no_show || gameInfo?.timeout) && !gameInfo?.is_finished }
+        showClaimReward={ gameInfo?.is_finished && (connectedAddr === gameInfo?.players[0] || connectedAddr === gameInfo?.players[1]) }
+        onClaimRewardClicked={() => handleClaimReward()}
         offerDraw={offerDraw}
       />
       <Modal

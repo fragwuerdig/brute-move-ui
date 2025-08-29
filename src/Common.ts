@@ -1,6 +1,6 @@
 import type { ChainInfo } from "@goblinhunt/cosmes/wallet";
 
-const REBEL_FACTORY = 'terra1mv9jq4ntvdc7fzkjv0wtjqx7qrhuzch8k2aedem4ac28za3pduusfjjzu8'
+const REBEL_FACTORY = 'terra15ntm2n4vnmhrrx9f6y8qu4mylzy26t0jks08k0jzwyy5w4vvrhvq7syhct';
 
 export function addressEllipsis(address: string): string {
   const parts = address.split('1');
@@ -79,5 +79,6 @@ export interface JoinableGame {
   opponent: string,
   create_time: number,
   bet: number,
+  fee: number,
   contract?: string,
 }
