@@ -39,10 +39,14 @@ export async function ensureChainAddedKeplr(chain: string) {
   console.log("Ensuring Keplr chain is added: ", chain);
   if (!("keplr" in window)) throw new Error("Keplr nicht gefunden");
   try{
+    if (!(window as any).keplr) {
+      // silently ignore if Keplr not installed - fallback to WC
+      return;
+    }
     await (window.keplr as any).experimentalSuggestChain(keplrChainInfos[chain]);
     await (window.keplr as any).enable(chain);
   } catch{
     alert(`It was not possible to add and enable ${chain}`);
-    throw new Error("Keplr nicht gefunden");
+    console.error("Keplr nicht gefunden");
   }
 }
