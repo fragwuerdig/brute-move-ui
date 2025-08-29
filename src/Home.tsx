@@ -1,10 +1,12 @@
-import { Box, Button, Card, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Divider, IconButton, List, ListItem, TextField, Typography } from '@mui/material';
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField, Typography } from '@mui/material';
 import React, { useEffect } from 'react';
-import DeleteIcon from '@mui/icons-material/Delete';
 import { fetchContractStateSmart, getFactoryAddr, type JoinableGame } from './Common';
 import { useWallet } from './WalletProvider';
 
 import { useNavigate } from "react-router-dom";
+import { LightCard } from './LightCard';
+import { StyledButton } from './StyledButton';
+import { Input } from './Input';
 
 export interface SavedGame {
     address: string; //on chain game address
@@ -30,7 +32,7 @@ const Home: React.FC = () => {
     
     const [showAddGameModal, setShowAddGameModal] = React.useState<boolean>(false);
     const [newGameName, setNewGameName] = React.useState<string>("");
-    const [savedGames, setSavedGames] = React.useState<SavedGame[]>([]);
+    const [_savedGames, setSavedGames] = React.useState<SavedGame[]>([]);
     const {chain} = useWallet();
 
     const handleAddGame = () => {
@@ -54,10 +56,6 @@ const Home: React.FC = () => {
         setReload(reload + 1); // Trigger a reload to update the UI
 
         // Optionally, you can trigger a reload or update the state to reflect the new game
-    };
-
-    const onClickPlayHandler = (addr: string) => {
-        navigate(`/games/${addr}`);
     };
 
     const onJoinableSearchHandler = (searchTerm: string) => {
@@ -89,63 +87,41 @@ const Home: React.FC = () => {
 
     return (
         <>
-            <Card sx={{ width: '60%', minWidth: '300px', padding: '20px', margin: '40px' }}>
-                <Typography variant="h5" gutterBottom sx={{ marginBottom: '30px' }}>
-                    Bookmarked Games
-                </Typography>
-                <Divider sx={{ marginBottom: '30px' }} />
-                <List>
-                    {
-                        savedGames.length === 0 ? (
-                            <Typography variant="body1" sx={{ textAlign: 'center', marginTop: '20px' }}>
-                                No saved games found.
-                            </Typography>
-                        ) : (
-                            savedGames.map((game) => (
-                                <ListItem key={game.address} sx={{ gap: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <Typography variant="body1" sx={{ minWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{game.name}</Typography>
-                                    <Typography variant="body1" sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{game.address}</Typography>
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px', flexDirection: 'row' }}>
-                                        <Button variant="contained" onClick={() => onClickPlayHandler(game.address)}>Play</Button>
-                                        <IconButton color="error">
-                                            <DeleteIcon />
-                                        </IconButton>
-                                    </Box>
-                                </ListItem>
-                            ))
-                        )
-                    }
-                </List>
-                <Divider sx={{ margin: '30px 0' }} />
+            <LightCard sx={{ width: '90%', maxWidth: '500px', minWidth: '300px', padding: '20px', margin: '40px' }}>
                 <Typography variant="h5" gutterBottom>
-                    Joinable Games
+                    Search by Game ID
                 </Typography>
                 <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: '20px', marginTop: '20px' }}>
-                    <TextField
-                        variant="outlined"
-                        label="Search by ID"
-                        sx={{ flexGrow: 1 }}
+                    <Input
+                        placeholder="Search by ID"
+                        value={gameAddrSearchTerm}
                         onChange={(e) => {
-                            const searchTerm = e.target.value.toLowerCase();
+                            const searchTerm = e.toLowerCase();
+                            setGameAddrSearchTerm(searchTerm);
                             onJoinableSearchHandler(searchTerm);
                         }}
                     />
-                    <Button
-                        variant="outlined"
+                </Box>
+                <Box sx={{ width: '100%', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: '15px', gap: '10px' }}>
+                    <StyledButton
+                        variant="contained"
+                        color='primary'
+                        onClick={() => navigate('/create')}
+                        sx={{ height: '40px' }}
+                    >
+                        Create Game
+                    </StyledButton>
+                    <StyledButton
+                        variant="contained"
+                        color='primary'
                         onClick={() => navigate(`/join/${joinableGameId}`)}
                         disabled={fetchingJoinableGame || invalidJoinableGame}
+                        sx={{ height: '40px', minWidth: '100px' }}
                     >
                         Join
-                    </Button>
+                    </StyledButton>
                 </Box>
-                <Divider sx={{ margin: '30px 0' }} />
-                <Typography variant="h5" gutterBottom>
-                    Add a New Game
-                </Typography>
-                <Button variant="contained" onClick={() => navigate('/create')} sx={{ marginTop: '20px' }}>
-                    Create Game
-                </Button>
-            </Card>
+            </LightCard>
             <Dialog open={showAddGameModal} onClose={() => setShowAddGameModal(false)}>
                 <DialogTitle>Add New Game</DialogTitle>
                 <DialogContent>

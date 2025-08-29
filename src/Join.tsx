@@ -1,6 +1,6 @@
 
-import { Box, Card, Divider, Modal, TextField, Typography } from '@mui/material';
-import { Button, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio } from '@mui/material';
+import { Box, Divider, Modal, Typography } from '@mui/material';
+import { Button, FormControl, RadioGroup, FormControlLabel, Radio } from '@mui/material';
 
 import { fetchBankBalance, fetchContractStateSmart, getFactoryAddr, type JoinableGame } from './Common';
 import { useWallet } from './WalletProvider';
@@ -10,6 +10,9 @@ import { MsgExecuteContract } from '@goblinhunt/cosmes/client';
 
 import { useNavigate } from "react-router-dom";
 import { STORE_KEY_SAVED_GAMES, type SavedGame } from './Home';
+import { LightCard } from './LightCard';
+import { Input } from './Input';
+import { StyledButton } from './StyledButton';
 
 interface JoinProps {
   game: JoinableGame | null;
@@ -167,14 +170,16 @@ function Join({ game }: JoinProps) {
     <>
       {
         game ? (
-          <Card sx={{ width: '60%', minWidth: '300px', padding: '20px', margin: '40px' }}>
+          <LightCard sx={{ width: '90%', maxWidth: '500px', minWidth: '300px', padding: '20px', margin: '40px' }}>
             <Typography variant="h5" gutterBottom>
               Accept a Chess Challenge
             </Typography>
             <Divider sx={{ marginBottom: '30px' }} />
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <FormControl component="fieldset" sx={{ marginBottom: '20px' }}>
-                <FormLabel component="legend">Choose your color!<br />You will be assigned a unique contract address that you can share with your game partner to start the game.</FormLabel>
+                <Typography>
+                  Choose your color!<br />You will be assigned a unique contract address that you can share with your game partner to start the game.
+                </Typography>
                 <RadioGroup
                   value={color}
                   onChange={(e) => setColor(e.target.value as 'White' | 'Black' | 'Random')}
@@ -187,16 +192,18 @@ function Join({ game }: JoinProps) {
                 </RadioGroup>
               </FormControl>
               <Divider sx={{ marginBottom: '5px', marginTop: '5px' }} />
-              <FormLabel component="legend">Your opponent asks you to accept the challenge with the following bet :</FormLabel>
-              <TextField
+              <Typography>
+                Your opponent asks you to accept the challenge with the following bet :
+              </Typography>
+              <Input
                 value={`${game.bet / 1000000} $LUNC`}
-                disabled ={true}
+                disabled={true}
               />
-              <Button disabled={!connectedAddr || !!message} variant="contained" onClick={() => handleOnClickJoin(connectedAddr || "")}>Join!</Button>
-              <Button disabled={connectedAddr !== game.opponent} variant="contained" color="error" onClick={() => handleOnClickRetract(connectedAddr || "")}>Retract</Button>
+              <StyledButton disabled={!connectedAddr || !!message} variant="contained" onClick={() => handleOnClickJoin(connectedAddr || "")}>Join!</StyledButton>
+              <StyledButton disabled={connectedAddr !== game.opponent} variant="contained" color="error" onClick={() => handleOnClickRetract(connectedAddr || "")}>Retract</StyledButton>
               { message && (<Typography variant="body1" color="error">{message}</Typography> )}
             </Box>
-          </Card>
+          </LightCard>
         ) : (
           <div>Loading...</div>
         )

@@ -1,0 +1,70 @@
+
+
+.compact {
+    width: 100%;
+    min-width: 350px;
+    max-width: 500px;
+}
+
+.player-label-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 15px;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.compact .light-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+}
+
+.light-card .timer {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  right: var(--gap, 20px);   /* Abstand vom rechten Rand, 24px Fallback */
+  z-index: 1;
+  background-color: #444444;
+  color: #fefefefe;
+  border-radius: 100px;
+}
+
+
+.light-card .timer p {
+  padding: 20px;
+  padding-top: 1px;
+  padding-bottom: 1px;
+}
+
+.black-batch {
+    background-color: #444444;
+    width: 40px;
+    height: 40px;
+    border-radius: 100px;
+    border: 1px solid #E6E8EE;
+}
+
+.white-batch {
+    background-color: #FFFFFF;
+    width: 40px;
+    height: 40px;
+    border-radius: 100px;
+    border: 1px solid #E6E8EE;
+}
+
+@keyframes flash-shadow {
+    0%, 100% {
+        box-shadow: 0px 0px 10px #b3ff00;
+    }
+    50% {
+        box-shadow: 0px 0px 40px #b3ff00;
+    }
+}
+
+.active-turn {
+    animation: flash-shadow 4s infinite;
+}

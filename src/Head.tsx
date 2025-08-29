@@ -8,9 +8,9 @@ function Head({ children }: { children?: React.ReactNode }) {
     return (
         <>
             <Box className="top-gutter">
-                <AppBar>
+                <AppBar sx={{ backgroundColor: '#444444' }}>
                     <Toolbar variant="dense">
-                        <Box height={75} alignItems={"center"} display="flex">
+                        <Box height={60} alignItems={"center"} display="flex">
                             <Typography variant="h5" color="inherit" component="div" sx={{ cursor: 'pointer' }} onClick={() => navigate('/')}>
                                 Brute<b>Move!</b>
                             </Typography>

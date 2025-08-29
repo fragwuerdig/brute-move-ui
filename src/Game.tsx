@@ -1,19 +1,23 @@
 
 import { Chess } from 'chess.js';
 import { useState, useRef, useEffect } from 'react';
-import { Chessboard } from "react-chessboard";
-import type { Piece, PromotionPieceOption, Square } from 'react-chessboard/dist/chessboard/types';
+import type { PromotionPieceOption, Square } from 'react-chessboard/dist/chessboard/types';
 import { useWallet } from './WalletProvider';
 import { MsgExecuteContract } from '@goblinhunt/cosmes/client';
 import type { UnsignedTx } from '@goblinhunt/cosmes/wallet';
-import { Box, Button, Card, Modal, Typography } from '@mui/material';
-import { addressEllipsis, fetchContractStateSmart, type GameInfo } from './Common';
+import { fetchContractStateSmart, type GameInfo } from './Common';
 import './Game.css';
-import Clock from './Clock';
-import { Checkbox } from '@mui/material';
+import TurnIndicator from './TurnIndicator';
+import { BoardCard } from './BoardCard';
+import { ActionCard } from './ActionCard';
+import Modal from '@mui/material/Modal';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import { StyledButton } from './StyledButton';
 
 
 interface GameProps {
+  variant: 'compact' | 'default';
   gameAddress?: string;
 }
 
@@ -22,14 +26,8 @@ function isPlayerTurn(info: GameInfo, connectedAddr: string | undefined): boolea
   return info.turn === 'white' ? connectedAddr === info.players[0] : connectedAddr === info.players[1];
 }
 
-function boardOrientation(info: GameInfo, connectedAddr: string | undefined): "white" | "black" {
-  if (!connectedAddr) return "white";
-  if (info.players[0] === connectedAddr) return "white";
-  if (info.players[1] === connectedAddr) return "black";
-  return "white";
-}
-
-function canPlay(info: GameInfo, connectedAddr: string | undefined): boolean {
+function canPlay(info: GameInfo | null, connectedAddr: string | undefined): boolean {
+  if (!info) return false;
   if (!connectedAddr) return false;
   if (info.is_finished) return false;
   if (!isPlayerTurn(info, connectedAddr)) return false;
@@ -37,12 +35,13 @@ function canPlay(info: GameInfo, connectedAddr: string | undefined): boolean {
   return true;
 }
 
-/*function getPlayersColor(info: GameInfo, address: string): "white" | "black" | "neither" {
-  if (!address) return "neither";
+function getPlayersColor(info: GameInfo | null, address: string | undefined): "white" | "black" | undefined {
+  if (!info) return undefined;
+  if (!address) return undefined;
   if (info.players[0] === address) return "white";
   if (info.players[1] === address) return "black";
-  return "neither";
-}*/
+  return undefined;
+}
 
 function getKingSquare(game: Chess, color: 'w' | 'b'): Square | null {
   const board = game.board();
@@ -81,19 +80,19 @@ function splitLastMoveUCI(uci: string): { from: Square, to: Square, promotion?: 
   return { from, to, promotion };
 }
 
-function clockTimeLeft(game: GameInfo | null): { type: 'noshow' | 'move', time: number } {
-  if (!game) return { type: 'move', time: 0 };
-  if (game.is_finished || game.no_show || game.timeout) return { type: 'move', time: 0 };
+function clockTimeLeft(game: GameInfo | null): { type: 'no-show' | 'turn', time: number } {
+  if (!game) return { type: 'turn', time: 0 };
+  if (game.is_finished || game.no_show || game.timeout) return { type: 'turn', time: 0 };
   if (game.fullmoves === 1 || game.fullmoves === 0) {
     let secondsSinceCreation = game.game_start_timeout + game.created - Math.floor((Date.now() / 1000));
-    return { type: 'noshow', time: secondsSinceCreation };
+    return { type: 'no-show', time: secondsSinceCreation };
   } else {
     let secondsSinceMove = game.move_timeout + game.last_move_time - Math.floor((Date.now() / 1000));
-    return { type: 'move', time: secondsSinceMove };
+    return { type: 'turn', time: secondsSinceMove };
   }
 }
 
-function Game({ gameAddress }: GameProps) {
+function Game({ gameAddress, variant }: GameProps) {
 
   const [reload, setReload] = useState(0);
   const [fen, setFen] = useState("start");
@@ -103,9 +102,9 @@ function Game({ gameAddress }: GameProps) {
   const [fromSquare, setFromSquare] = useState<Square | null>(null);
   const [toSquare, setToSquare] = useState<Square | null>(null);
 
-  const [fetchingGameInfo, setFetchingGameInfo] = useState(true);
-  const [invalidGameInfo, setInvalidGameInfo] = useState(false);
-  const [draggable, setDraggable] = useState(false);
+  const [_fetchingGameInfo, setFetchingGameInfo] = useState(true);
+  const [_invalidGameInfo, setInvalidGameInfo] = useState(false);
+  const [_draggable, setDraggable] = useState(false);
   const [gameInfo, setGameInfo] = useState<GameInfo | null>(null);
   const [drawDismissed, setDrawDismissed] = useState(false);
   const polling = useRef<boolean>(true);
@@ -145,6 +144,7 @@ function Game({ gameAddress }: GameProps) {
     setCheckSquare(getCheckIndicator(game));
   }, [fen, gameAddress, connectedAddr])
 
+  // reload timer
   useEffect(() => {
     setTimeout(() => {
       if (polling.current) {
@@ -153,6 +153,7 @@ function Game({ gameAddress }: GameProps) {
     }, 5000);
   }, [reload, polling]);
 
+  // fetch game info
   useEffect(() => {
     fetchContractStateSmart(gameAddress || "", { game_info: {} })
       .catch(() => {
@@ -177,7 +178,7 @@ function Game({ gameAddress }: GameProps) {
       });
   }, [gameAddress, connectedAddr, reload]);
 
-  function handleTimeoutSetting() {
+  function handleSettlingAfterTimeout() {
     const msg = { settle: {} };
     const tx = {
       msgs: [
@@ -207,7 +208,7 @@ function Game({ gameAddress }: GameProps) {
     return true;
   }
 
-  function onDrop(sourceSquare: Square, targetSquare: Square, _piece: Piece): boolean {
+  function onDrop(sourceSquare: Square, targetSquare: Square): boolean {
 
     polling.current = false;
 
@@ -340,7 +341,93 @@ function Game({ gameAddress }: GameProps) {
     });
   }
 
-  return (
+  return variant === 'compact' ? (
+    <>
+      {
+        <TurnIndicator
+          variant="compact"
+          timeoutVariant={clockTimeLeft(gameInfo).type}
+          activeTurn={gameInfo?.turn || undefined}
+          secLeft={clockTimeLeft(gameInfo).time}
+          players={gameInfo?.players || []}
+          player={connectedAddr}
+          gameFinished={gameInfo?.is_finished || false}
+          winner={getPlayersColor(gameInfo, gameInfo?.winner)}
+          gameTimedOut={gameInfo?.no_show ? 'no-show' : (gameInfo?.timeout ? 'turn' : undefined)}
+        />
+      }
+      <BoardCard
+        variant="compact"
+        fen={gameInfo?.board || 'start'}
+        checkField={checkSquare || undefined}
+        lastMove={fromSquare && toSquare ? (fromSquare + toSquare) : undefined}
+        disabled={!canPlay(gameInfo, connectedAddr)}
+        onDrop={onDrop}
+        player={getPlayersColor(gameInfo, connectedAddr)}
+        onPromotionPieceSelect={onPromotionPieceSelect}
+      />
+      <ActionCard
+        variant="compact"
+        disabled={!canPlay(gameInfo, connectedAddr)}
+        onChange={(value) => setOfferDraw(value)}
+        onRetreatClicked={() => handleGiveUp()}
+        onShareClicked={() => handleShare()}
+        onSettleClicked={() => handleSettlingAfterTimeout()}
+        showSettle={(gameInfo?.no_show || gameInfo?.timeout) && !gameInfo?.is_finished}
+        offerDraw={offerDraw}
+      />
+      <Modal
+        open={openDraw && !drawDismissed}
+        aria-labelledby="draw-offer-modal-title"
+        aria-describedby="draw-offer-modal-description"
+      >
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: 350,
+            bgcolor: 'background.paper',
+            border: '2px solid #000',
+            boxShadow: 24,
+            p: 4,
+            borderRadius: 2,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+          }}
+        >
+          <Typography id="draw-offer-modal-title" variant="h6" component="h2" sx={{ mb: 2 }}>
+            Draw Offer
+          </Typography>
+          <Typography id="draw-offer-modal-description" sx={{ mb: 3 }}>
+            Your opponent has offered a draw. Do you accept?
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <StyledButton
+              variant="contained"
+              color="primary"
+              onClick={() => handleAcceptDraw()}>
+              Accept
+            </StyledButton>
+            <StyledButton
+              variant="outlined"
+              color="secondary"
+              onClick={() => { setDrawDismissed(true); }}
+            >
+              Decline
+            </StyledButton>
+          </Box>
+        </Box>
+      </Modal>
+    </>
+  ) : (
+    <>
+    </>
+  );
+
+  /*return (
     <>
 
       {
@@ -452,58 +539,14 @@ function Game({ gameAddress }: GameProps) {
                 </Card>
               </Box>
 
-              <Modal
-                open={openDraw && !drawDismissed}
-                aria-labelledby="draw-offer-modal-title"
-                aria-describedby="draw-offer-modal-description"
-              >
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    width: 350,
-                    bgcolor: 'background.paper',
-                    border: '2px solid #000',
-                    boxShadow: 24,
-                    p: 4,
-                    borderRadius: 2,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                  }}
-                >
-                  <Typography id="draw-offer-modal-title" variant="h6" component="h2" sx={{ mb: 2 }}>
-                    Draw Offer
-                  </Typography>
-                  <Typography id="draw-offer-modal-description" sx={{ mb: 3 }}>
-                    Your opponent has offered a draw. Do you accept?
-                  </Typography>
-                  <Box sx={{ display: 'flex', gap: 2 }}>
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      onClick={() => handleAcceptDraw()}>
-                      Accept
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      color="secondary"
-                      onClick={() => { setDrawDismissed(true); }}
-                    >
-                      Decline
-                    </Button>
-                  </Box>
-                </Box>
-              </Modal>
+              
 
             </Box>
           )
         )
       }
     </>
-  );
+  );*/
 }
 
 export default Game;

@@ -1,11 +1,14 @@
 
-import { Box, Card, Divider, Modal, TextField, Typography } from '@mui/material';
+import { Box, Divider, Modal, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
-import { Button, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio } from '@mui/material';
+import { Button, FormControl, RadioGroup, FormControlLabel, Radio } from '@mui/material';
 import { MsgExecuteContract } from '@goblinhunt/cosmes/client';
 import type { UnsignedTx } from '@goblinhunt/cosmes/wallet';
 import { fetchBankBalance, fetchContractStateSmart, getFactoryAddr } from './Common';
 import { useWallet } from './WalletProvider';
+import { LightCard } from './LightCard';
+import { Input } from './Input';
+import { StyledButton } from './StyledButton';
 
 interface CreatedModal {
   open: boolean;
@@ -114,14 +117,16 @@ function Create() {
 
   return (
     <>
-      <Card sx={{ width: '60%', minWidth: '300px', padding: '20px', margin: '40px' }}>
+      <LightCard sx={{ width: '90%', maxWidth: '500px', minWidth: '300px', padding: '20px', margin: '40px' }}>
         <Typography variant="h5" gutterBottom>
           Create a New Chess Challenge
         </Typography>
         <Divider sx={{ marginBottom: '30px' }} />
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          <FormControl component="fieldset" sx={{ marginBottom: '20px' }}>
-            <FormLabel component="legend">Choose your color! You will be assigned a unique ID that you can share with your challenger.</FormLabel>
+          <FormControl component="fieldset">
+            <Typography>
+              Choose your color! You will be assigned a unique ID that you can share with your challenger.
+            </Typography>
             <RadioGroup
               value={color}
               onChange={(e) => setColor(e.target.value as 'White' | 'Black' | 'Random')}
@@ -133,19 +138,25 @@ function Create() {
               <FormControlLabel value="Random" control={<Radio />} label="Random" />
             </RadioGroup>
             <Divider sx={{ marginBottom: '30px', marginTop: '5px' }} />
-            <FormLabel component="legend">Choose an amount to bet on this challenge. Your opponent will bet against it! 10% betting fee. Min. bet amount currently sits at {minBetAmount} $LUNC</FormLabel>
-            <TextField
-              type="number"
-              variant="outlined"
+            <Typography>
+              Choose an amount to bet on this challenge. Your opponent will bet against it! 10% betting fee. Min. bet amount currently sits at {minBetAmount} $LUNC
+            </Typography>
+            <Input
               placeholder="Bet Amount in $LUNC"
-              sx={{ marginTop: '10px' }}
-              onChange={(e) => { setBetAmount(parseInt(e.target.value)) }}
+              onChange={(e) => { setBetAmount(parseInt(e)) }}
+              style={{  marginTop: '15px' }}
             />
           </FormControl>
-          <Button disabled={!connectedAddr || disabledButton} variant="contained" onClick={() => handleOnClickCreate(connectedAddr || "")}>Create!</Button>
+          <StyledButton
+            disabled={!connectedAddr || disabledButton}
+            variant="contained"
+            onClick={() => handleOnClickCreate(connectedAddr || "")}
+          >
+            Create!
+          </StyledButton>
           { disabledText && <Typography color="error">{disabledText}</Typography> }
         </Box>
-      </Card>
+      </LightCard>
       <Modal open={modal.open} onClose={() => setModal({ open: false, message: '' })}>
         <Box
           sx={{
