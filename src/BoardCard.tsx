@@ -40,7 +40,7 @@ export function BoardCard({ variant, fen, disabled, player, checkField, lastMove
     
         // Second tap: move or unselect
         if (selected) {
-            if (piece) {
+            if (piece && piece[0] === (player === "white" ? 'w' : 'b')) {
                 setSelected(square);
                 return;
             }
