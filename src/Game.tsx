@@ -104,7 +104,7 @@ function Game({ gameAddress, variant }: GameProps) {
 
   const [_fetchingGameInfo, setFetchingGameInfo] = useState(true);
   const [_invalidGameInfo, setInvalidGameInfo] = useState(false);
-  const [_draggable, setDraggable] = useState(false);
+  const [draggable, setDraggable] = useState(false);
   const [gameInfo, setGameInfo] = useState<GameInfo | null>(null);
   const [drawDismissed, setDrawDismissed] = useState(false);
   const polling = useRef<boolean>(true);
@@ -385,14 +385,14 @@ function Game({ gameAddress, variant }: GameProps) {
         fen={gameInfo?.board || 'start'}
         checkField={checkSquare || undefined}
         lastMove={fromSquare && toSquare ? (fromSquare + toSquare) : undefined}
-        disabled={!canPlay(gameInfo, connectedAddr)}
-        onDrop={onDrop}
+        disabled={!canPlay(gameInfo, connectedAddr) || !draggable}
+        onMove={onDrop}
         player={getPlayersColor(gameInfo, connectedAddr)}
         onPromotionPieceSelect={onPromotionPieceSelect}
       />
       <ActionCard
         variant="compact"
-        disabled={!canPlay(gameInfo, connectedAddr)}
+        disabled={!canPlay(gameInfo, connectedAddr) || !draggable}
         onChange={(value) => setOfferDraw(value)}
         onRetreatClicked={() => handleGiveUp()}
         onShareClicked={() => handleShare()}
