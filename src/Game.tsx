@@ -96,7 +96,7 @@ function Game({ gameAddress, variant }: GameProps) {
 
   const [reload, setReload] = useState(0);
   const [fen, setFen] = useState("start");
-  const promotionPiece = useRef<string>('');
+  //const promotionPiece = useRef<string>('');
 
   const [checkSquare, setCheckSquare] = useState<Square | null>(null);
   const [fromSquare, setFromSquare] = useState<Square | null>(null);

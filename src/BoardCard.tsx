@@ -2,7 +2,7 @@
 import { Chessboard } from "react-chessboard";
 import { LightCard } from "./LightCard";
 import type { CustomSquareStyles, PromotionPieceOption } from "react-chessboard/dist/chessboard/types";
-import { type Piece, type PieceSymbol, type Square } from "chess.js";
+import { type PieceSymbol, type Square } from "chess.js";
 import { useState } from "react";
 import { Box, Modal, Typography } from "@mui/material";
 
@@ -16,7 +16,6 @@ interface BoardCardProps {
     checkField?: string;
     lastMove?: string;
     onMove?: (sourceSquare: Square, targetSquare: Square, promotionPiece?: PromotionPieceOption) => boolean;
-    onPromotionPieceSelect?: (piece?: PromotionPieceOption, from?: Square, to?: Square) => boolean;
 }
 
 function parseIndicatorsSquares(checkField?: Square, lastMove?: string): CustomSquareStyles {
@@ -31,7 +30,7 @@ function parseIndicatorsSquares(checkField?: Square, lastMove?: string): CustomS
     return styles;
 }
 
-export function BoardCard({ variant, fen, disabled, player, checkField, lastMove, onMove, onPromotionPieceSelect }: BoardCardProps) {
+export function BoardCard({ variant, fen, disabled, player, checkField, lastMove, onMove }: BoardCardProps) {
 
     const [selected, setSelected] = useState<string | null>(null);
     const [target, setTarget] = useState<string | null>(null);
