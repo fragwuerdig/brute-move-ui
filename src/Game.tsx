@@ -198,32 +198,37 @@ function Game({ gameAddress, variant }: GameProps) {
     })
   }
 
-  function onPromotionPieceSelect(piece?: PromotionPieceOption, _from?: Square, _to?: Square): boolean {
+  /*function onPromotionPieceSelect(, _from?: Square, _to?: Square): boolean {
+    console.log("Selected promotion piece:", piece);
     if (!piece) {
       promotionPiece.current = 'q';
       return true
     }
     const base = piece[1].toLowerCase();
+    console.log("Promotion piece base:", base);
     promotionPiece.current = base;
     return true;
-  }
+  }*/
 
-  function onDrop(sourceSquare: Square, targetSquare: Square): boolean {
+  function onDrop(sourceSquare: Square, targetSquare: Square, promoPiece?: PromotionPieceOption): boolean {
 
     polling.current = false;
+    let promo = promoPiece ? promoPiece[1].toLowerCase() : '';
 
     const move = {
       from: sourceSquare,
       to: targetSquare,
-      promotion: promotionPiece.current,
+      promotion: promo,
     };
+
+    console.log("MOVE:", move);
 
     var result;
     var game = new Chess(fen, { skipValidation: true });
     try {
       result = game.move(move);
     } catch (error) {
-      console.error("Ungültiger Zug:", error);
+      console.error("Ungültiger Zugi:", error);
       return false;
     }
 
@@ -388,7 +393,7 @@ function Game({ gameAddress, variant }: GameProps) {
         disabled={!canPlay(gameInfo, connectedAddr) || !draggable}
         onMove={onDrop}
         player={getPlayersColor(gameInfo, connectedAddr)}
-        onPromotionPieceSelect={onPromotionPieceSelect}
+        //onPromotionPieceSelect={onPromotionPieceSelect}
       />
       <ActionCard
         variant="compact"
