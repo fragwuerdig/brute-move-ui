@@ -96,14 +96,13 @@ function Game({ gameAddress, variant }: GameProps) {
 
   const [reload, setReload] = useState(0);
   const [fen, setFen] = useState("start");
-  //const promotionPiece = useRef<string>('');
 
   const [checkSquare, setCheckSquare] = useState<Square | null>(null);
   const [fromSquare, setFromSquare] = useState<Square | null>(null);
   const [toSquare, setToSquare] = useState<Square | null>(null);
+  const [pendingMove, setPendingMove] = useState<string | null>(null);
+  const [pendingFen, setPendingFen] = useState<string | null>(null);
 
-  const [_fetchingGameInfo, setFetchingGameInfo] = useState(true);
-  const [_invalidGameInfo, setInvalidGameInfo] = useState(false);
   const [draggable, setDraggable] = useState(false);
   const [gameInfo, setGameInfo] = useState<GameInfo | null>(null);
   const [drawDismissed, setDrawDismissed] = useState(false);
@@ -157,20 +156,15 @@ function Game({ gameAddress, variant }: GameProps) {
   useEffect(() => {
     fetchContractStateSmart(gameAddress || "", { game_info: {} })
       .catch(() => {
-        setInvalidGameInfo(true);
-        setFetchingGameInfo(false);
+        return;
       })
       .then((data: GameInfo) => {
         if (!data || !data.board) {
-          setInvalidGameInfo(true);
-          setFetchingGameInfo(false);
+          return;
           setOpenDraw(false);
           return;
         }
-        console.log(data)
         let newGame = new Chess(data.board, { skipValidation: false });
-        setFetchingGameInfo(false);
-        setInvalidGameInfo(false);
         setDraggable(true);
         setFen(newGame.fen());
         setGameInfo(data);
@@ -198,18 +192,6 @@ function Game({ gameAddress, variant }: GameProps) {
     })
   }
 
-  /*function onPromotionPieceSelect(, _from?: Square, _to?: Square): boolean {
-    console.log("Selected promotion piece:", piece);
-    if (!piece) {
-      promotionPiece.current = 'q';
-      return true
-    }
-    const base = piece[1].toLowerCase();
-    console.log("Promotion piece base:", base);
-    promotionPiece.current = base;
-    return true;
-  }*/
-
   function onDrop(sourceSquare: Square, targetSquare: Square, promoPiece?: PromotionPieceOption): boolean {
 
     polling.current = false;
@@ -220,8 +202,6 @@ function Game({ gameAddress, variant }: GameProps) {
       to: targetSquare,
       promotion: promo,
     };
-
-    console.log("MOVE:", move);
 
     var result;
     var game = new Chess(fen, { skipValidation: true });
@@ -239,8 +219,9 @@ function Game({ gameAddress, variant }: GameProps) {
     }
 
     let oldFen = fen;
-    setFen(game.fen());
+    setPendingFen(game.fen());
     setDraggable(false);
+    setPendingMove(move.from + move.to + (move.promotion ? move.promotion : ''));
 
     const uci = move.from + move.to + move.promotion;
     const msg = {
@@ -262,17 +243,20 @@ function Game({ gameAddress, variant }: GameProps) {
     };
 
     broadcast(tx as UnsignedTx).then((_result) => {
-      setDraggable(true);
+      setDraggable(false)
       triggerReload();
+      setFen(pendingFen || oldFen);
+      polling.current = true;
     }).catch((error) => {
       console.error("Error broadcasting transaction:", error);
       setDraggable(true);
       setFen(oldFen);
       alert("Error broadcasting transaction: " + error.message);
     }).finally(() => {
-      polling.current = true;
       setOfferDraw(false);
       setDrawDismissed(false);
+      setTimeout(() => setPendingMove(null), 300);
+      setTimeout(() => setPendingFen(null), 300);
     });
 
     return true;
@@ -387,9 +371,9 @@ function Game({ gameAddress, variant }: GameProps) {
       }
       <BoardCard
         variant="compact"
-        fen={gameInfo?.board || 'start'}
+        fen={pendingFen ? pendingFen : (gameInfo?.board || 'start')}
         checkField={checkSquare || undefined}
-        lastMove={fromSquare && toSquare ? (fromSquare + toSquare) : undefined}
+        lastMove={pendingMove ? pendingMove : (fromSquare && toSquare ? (fromSquare + toSquare) : undefined)}
         disabled={!canPlay(gameInfo, connectedAddr) || !draggable}
         onMove={onDrop}
         player={getPlayersColor(gameInfo, connectedAddr)}
