@@ -1,0 +1,183 @@
+/* ============================================
+   LEADERBOARD - PREMIUM STYLES
+   ============================================ */
+
+.leaderboard {
+  width: 100%;
+  background: linear-gradient(145deg, #1e1f26 0%, #14151a 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.leaderboard__header {
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.leaderboard__title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+}
+
+.leaderboard__table {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Row Styles */
+.leaderboard__row {
+  display: flex;
+  align-items: center;
+  padding: 14px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  transition: background 150ms ease;
+}
+
+.leaderboard__row:last-child {
+  border-bottom: none;
+}
+
+.leaderboard__row:not(.leaderboard__row--header):hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* Header Row */
+.leaderboard__row--header {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 12px 24px;
+}
+
+.leaderboard__row--header .leaderboard__cell {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b6e7b;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* Current User Highlight */
+.leaderboard__row--current {
+  background: rgba(247, 179, 43, 0.08);
+  border-left: 3px solid #f7b32b;
+  padding-left: 21px;
+}
+
+.leaderboard__row--current:hover {
+  background: rgba(247, 179, 43, 0.12);
+}
+
+/* Top 3 Rows */
+.leaderboard__row--top1 {
+  background: linear-gradient(90deg, rgba(255, 215, 0, 0.08) 0%, transparent 100%);
+}
+
+.leaderboard__row--top2 {
+  background: linear-gradient(90deg, rgba(192, 192, 192, 0.06) 0%, transparent 100%);
+}
+
+.leaderboard__row--top3 {
+  background: linear-gradient(90deg, rgba(205, 127, 50, 0.06) 0%, transparent 100%);
+}
+
+/* Cell Styles */
+.leaderboard__cell {
+  font-size: 14px;
+  color: #a0a3b1;
+}
+
+.leaderboard__cell--rank {
+  width: 50px;
+  font-weight: 600;
+  color: #6b6e7b;
+  flex-shrink: 0;
+}
+
+.leaderboard__cell--address {
+  flex: 1;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.leaderboard__cell--elo {
+  width: 80px;
+  text-align: right;
+  font-weight: 600;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+/* Medal Styles */
+.leaderboard__medal {
+  font-size: 18px;
+  line-height: 1;
+}
+
+/* Rank Colors for Top 3 */
+.leaderboard__rank--1 {
+  color: #ffd700;
+}
+
+.leaderboard__rank--2 {
+  color: #c0c0c0;
+}
+
+.leaderboard__rank--3 {
+  color: #cd7f32;
+}
+
+/* You Badge */
+.leaderboard__you {
+  color: #f7b32b;
+  font-weight: 700;
+  font-family: 'Inter', -apple-system, sans-serif;
+}
+
+/* Empty State */
+.leaderboard__empty {
+  padding: 40px 24px;
+  text-align: center;
+  color: #6b6e7b;
+  font-size: 14px;
+}
+
+/* Responsive */
+@media (max-width: 500px) {
+  .leaderboard__header {
+    padding: 16px 18px;
+  }
+
+  .leaderboard__row {
+    padding: 12px 18px;
+  }
+
+  .leaderboard__row--header {
+    padding: 10px 18px;
+  }
+
+  .leaderboard__cell--rank {
+    width: 40px;
+  }
+
+  .leaderboard__cell--address {
+    font-size: 12px;
+  }
+
+  .leaderboard__cell--elo {
+    width: 60px;
+    font-size: 13px;
+  }
+
+  .leaderboard__medal {
+    font-size: 16px;
+  }
+}

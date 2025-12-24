@@ -51,6 +51,72 @@
   background-clip: text;
 }
 
+/* Header Navigation */
+.header-nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-nav-link {
+  padding: 8px 16px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 100px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #a0a3b1;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.header-nav-link:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+
+/* Wallet Button */
+.header-wallet {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 100px;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.header-wallet:hover {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.header-wallet:hover .header-wallet__address {
+  color: #ef4444;
+}
+
+.header-wallet:hover svg {
+  stroke: #ef4444;
+}
+
+.header-wallet__address {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  color: #a0a3b1;
+  transition: color 150ms ease;
+}
+
+.header-wallet svg {
+  width: 16px;
+  height: 16px;
+  stroke: #6b6e7b;
+  transition: stroke 150ms ease;
+}
+
 .header-badge {
   display: flex;
   align-items: center;
@@ -111,6 +177,29 @@
 
   .header-logo-text {
     font-size: 18px;
+  }
+
+  .header-nav {
+    gap: 10px;
+  }
+
+  .header-nav-link {
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+
+  .header-wallet {
+    padding: 6px 10px;
+    gap: 6px;
+  }
+
+  .header-wallet__address {
+    font-size: 10px;
+  }
+
+  .header-wallet svg {
+    width: 14px;
+    height: 14px;
   }
 
   .header-badge {

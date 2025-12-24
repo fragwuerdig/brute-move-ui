@@ -1,8 +1,7 @@
 import type { ChainInfo } from "@goblinhunt/cosmes/wallet";
 
 const REBEL_FACTORY = 'terra1epal6ev4pas762cun685kh36qdtd9u9um0yd3u0r22x39u43dhessteue6';
-// Leaderboard contract (for future use)
-// const REBEL_LEADERBOARD = 'terra1lshuhtqfh25zlalgm9zy529vvpdljp9kdmzsx6t9wn64766aqq3s5ttfyh';
+const REBEL_LEADERBOARD = 'terra1lshuhtqfh25zlalgm9zy529vvpdljp9kdmzsx6t9wn64766aqq3s5ttfyh';
 
 export function addressEllipsis(address: string): string {
   const parts = address.split('1');
@@ -53,6 +52,18 @@ export function getFactoryAddr(chain: ChainInfo<string>) {
     return REBEL_FACTORY;
   } else if ( chain.chainId === 'columbus-5') {
     return REBEL_FACTORY;
+  }
+
+  throw new Error
+
+}
+
+export function getLeaderboardAddr(chain: ChainInfo<string>) {
+
+  if ( chain.chainId === 'rebel-2' ) {
+    return REBEL_LEADERBOARD;
+  } else if ( chain.chainId === 'columbus-5') {
+    return REBEL_LEADERBOARD;
   }
 
   throw new Error

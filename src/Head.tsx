@@ -1,8 +1,19 @@
 import { useNavigate } from "react-router-dom";
+import { useWallet } from "./WalletProvider";
+import { addressEllipsis } from "./Common";
 import './Head.css';
+
+const DisconnectIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+        <polyline points="16 17 21 12 16 7" />
+        <line x1="21" y1="12" x2="9" y2="12" />
+    </svg>
+);
 
 function Head({ children }: { children?: React.ReactNode }) {
     const navigate = useNavigate();
+    const { connected, connectedAddr, disconnect } = useWallet();
 
     return (
         <>
@@ -13,8 +24,19 @@ function Head({ children }: { children?: React.ReactNode }) {
                             Brute<strong>Move!</strong>
                         </span>
                     </div>
-                    <div className="header-badge">
-                        On-Chain
+                    <div className="header-nav">
+                        <button className="header-nav-link" onClick={() => navigate('/leaderboard')}>
+                            Leaderboard
+                        </button>
+                        {connected && connectedAddr && (
+                            <button className="header-wallet" onClick={disconnect}>
+                                <span className="header-wallet__address">{addressEllipsis(connectedAddr)}</span>
+                                <DisconnectIcon />
+                            </button>
+                        )}
+                        <div className="header-badge">
+                            On-Chain
+                        </div>
                     </div>
                 </div>
             </header>
