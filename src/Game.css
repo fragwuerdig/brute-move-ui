@@ -1,49 +1,99 @@
-.chess-game-container {
-    width: 70vh;
-    max-width: 130%;
-    display: flex;
+/* ============================================
+   GAME PAGE - PREMIUM STYLES
+   ============================================ */
+
+.game-container {
+  width: min(700px, calc(100vw - 32px));
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 16px;
+}
+
+/* Modal Overlay */
+.game-modal-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  padding: 20px;
+}
+
+.game-modal {
+  background: linear-gradient(145deg, #1e1f26 0%, #14151a 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 32px;
+  max-width: 380px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+}
+
+.game-modal__title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 12px;
+}
+
+.game-modal__message {
+  font-size: 15px;
+  color: #a0a3b1;
+  margin: 0 0 28px;
+  line-height: 1.5;
+}
+
+.game-modal__actions {
+  display: flex;
+  gap: 12px;
+}
+
+.game-modal__btn {
+  flex: 1;
+  padding: 14px 20px;
+  border-radius: 12px;
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 150ms ease;
+  border: none;
+}
+
+.game-modal__btn--secondary {
+  background: rgba(255, 255, 255, 0.05);
+  color: #a0a3b1;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.game-modal__btn--secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.game-modal__btn--primary {
+  background: linear-gradient(135deg, #f7b32b 0%, #d4941a 100%);
+  color: #0d0d0f;
+  box-shadow: 0 4px 15px rgba(247, 179, 43, 0.3);
+}
+
+.game-modal__btn--primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(247, 179, 43, 0.4);
+}
+
+/* Responsive */
+@media (max-width: 400px) {
+  .game-modal {
+    padding: 24px;
+  }
+
+  .game-modal__actions {
     flex-direction: column;
-    gap: 10px;
-    padding: 10px;
-}
-
-.turn-indicator-container {
-    width: 100%;
-    display: flex;
-    flex-direction: row;
-    gap: 25px;
-}
-
-.grow-shrink {
-    animation: pulse-scale 2s ease-in-out infinite;
-}
-
-@keyframes pulse-scale {
-
-    0%,
-    100% {
-        transform: scale(0.8);
-    }
-
-    50% {
-        transform: scale(1.0);
-        /* grows by 10% */
-    }
-}
-
-@media (max-width: 600px) {
-    .chess-game-container {
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        padding: 10px;
-    }
-
-    .turn-indicator-container {
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
+  }
 }

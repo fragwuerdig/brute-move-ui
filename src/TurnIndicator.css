@@ -1,70 +1,227 @@
+/* ============================================
+   TURN INDICATOR - PREMIUM STYLES
+   ============================================ */
 
-
-.compact {
-    width: 100%;
-    min-width: 350px;
-    max-width: 500px;
+.turn-indicator {
+  width: 100%;
 }
 
-.player-label-container {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 15px;
-    font-size: 18px;
-    font-weight: 600;
+.turn-indicator .glass-card {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
 }
 
-.compact .light-card {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    position: relative;
+/* Players Container */
+.players-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 24px;
+  flex: 1;
 }
 
-.light-card .timer {
+/* Player Info */
+.player-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.player-info--reverse {
+  flex-direction: row-reverse;
+}
+
+/* Player Badge */
+.player-badge {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+  transition: all 300ms ease;
+}
+
+.player-badge--white {
+  background: linear-gradient(145deg, #ffffff 0%, #e0e0e0 100%);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
+}
+
+.player-badge--black {
+  background: linear-gradient(145deg, #3a3a3a 0%, #1a1a1a 100%);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Active Turn Animation */
+.player-badge--active {
+  animation: active-glow 2s ease-in-out infinite;
+}
+
+.player-badge--active::before {
+  content: '';
   position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  right: var(--gap, 20px);   /* Abstand vom rechten Rand, 24px Fallback */
-  z-index: 1;
-  background-color: #444444;
-  color: #fefefefe;
+  inset: -6px;
+  border-radius: 50%;
+  border: 2px solid #f7b32b;
+  opacity: 0.6;
+  animation: pulse-ring 2s ease-in-out infinite;
+}
+
+@keyframes active-glow {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(247, 179, 43, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(247, 179, 43, 0.8), 0 0 45px rgba(247, 179, 43, 0.3);
+  }
+}
+
+@keyframes pulse-ring {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.3;
+  }
+}
+
+/* Player Name */
+.player-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #a0a3b1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100px;
+  transition: color 200ms ease;
+}
+
+.player-name--active {
+  color: #ffffff;
+}
+
+.player-name--you {
+  color: #f7b32b;
+  font-weight: 700;
+}
+
+/* VS Divider */
+.vs-divider {
+  color: #6b6e7b;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* Timer Badge */
+.timer-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: #1a1b21;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 100px;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
-
-.light-card .timer p {
-  padding: 20px;
-  padding-top: 1px;
-  padding-bottom: 1px;
+.timer-badge__label {
+  color: #6b6e7b;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-.black-batch {
-    background-color: #444444;
-    width: 40px;
-    height: 40px;
-    border-radius: 100px;
-    border: 1px solid #E6E8EE;
+.timer-badge__time {
+  color: #a0a3b1;
+  font-weight: 600;
 }
 
-.white-batch {
-    background-color: #FFFFFF;
-    width: 40px;
-    height: 40px;
-    border-radius: 100px;
-    border: 1px solid #E6E8EE;
+/* Timer States */
+.timer-badge--warning {
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.3);
 }
 
-@keyframes flash-shadow {
-    0%, 100% {
-        box-shadow: 0px 0px 10px #b3ff00;
-    }
-    50% {
-        box-shadow: 0px 0px 40px #b3ff00;
-    }
+.timer-badge--warning .timer-badge__time {
+  color: #f59e0b;
 }
 
-.active-turn {
-    animation: flash-shadow 4s infinite;
+.timer-badge--danger {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.3);
+  animation: pulse-danger 1s ease-in-out infinite;
+}
+
+.timer-badge--danger .timer-badge__time {
+  color: #ef4444;
+}
+
+@keyframes pulse-danger {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* Finished State */
+.timer-badge--finished {
+  background: linear-gradient(135deg, #f7b32b 0%, #d4941a 100%);
+  border: none;
+  padding: 10px 16px;
+}
+
+.timer-badge--finished .timer-badge__label,
+.timer-badge--finished .timer-badge__time {
+  color: #0d0d0f;
+  font-weight: 700;
+}
+
+/* Timeout State */
+.timer-badge--timeout {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+.timer-badge--timeout .timer-badge__label {
+  color: #ef4444;
+}
+
+/* Responsive */
+@media (max-width: 500px) {
+  .turn-indicator .glass-card {
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px 16px;
+  }
+
+  .players-container {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .player-name {
+    max-width: 80px;
+    font-size: 13px;
+  }
+
+  .timer-badge {
+    width: 100%;
+    justify-content: center;
+  }
 }

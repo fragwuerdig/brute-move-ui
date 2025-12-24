@@ -1,13 +1,14 @@
 import type { ChainInfo } from "@goblinhunt/cosmes/wallet";
 
 const REBEL_FACTORY = 'terra1epal6ev4pas762cun685kh36qdtd9u9um0yd3u0r22x39u43dhessteue6';
-const REBEL_LEADERBOARD = 'terra1lshuhtqfh25zlalgm9zy529vvpdljp9kdmzsx6t9wn64766aqq3s5ttfyh'
+// Leaderboard contract (for future use)
+// const REBEL_LEADERBOARD = 'terra1lshuhtqfh25zlalgm9zy529vvpdljp9kdmzsx6t9wn64766aqq3s5ttfyh';
 
 export function addressEllipsis(address: string): string {
   const parts = address.split('1');
   if (parts.length !== 2 || parts[1].length < 8) return address;
   //let str = `terra1${parts[1].slice(0, 4)}...${parts[1].slice(-5, -1)}`;
-  return `terra1...${parts[1].slice(-6, -1)}`;
+  return `terra1...${parts[1].slice(-5)}`;
 }
 
 export function fetchContractStateSmart(gameAddress: string, query: any): Promise<any> {

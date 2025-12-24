@@ -1,7 +1,5 @@
-
-import React, { useState } from 'react';
-import { LightCard } from './LightCard';
-import { Divider } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { GlassCard } from './GlassCard';
 import './TurnIndicator.css';
 import { addressEllipsis } from './Common';
 
@@ -17,16 +15,24 @@ interface TurnIndicatorProps {
     winner?: 'white' | 'black' | undefined;
 }
 
-const TurnIndicator: React.FC<TurnIndicatorProps> = ({ variant, activeTurn, secLeft, timeoutVariant, players, player, gameTimedOut, gameFinished, winner }) => {
-
+const TurnIndicator: React.FC<TurnIndicatorProps> = ({
+    activeTurn,
+    secLeft,
+    timeoutVariant,
+    players,
+    player,
+    gameTimedOut,
+    gameFinished,
+    winner
+}) => {
     const [seconds, setSeconds] = useState(secLeft || 0);
     const [formattedTime, setFormattedTime] = useState('00:00');
 
-    React.useEffect(() => {
+    useEffect(() => {
         setSeconds(secLeft || 0);
     }, [secLeft]);
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (seconds <= 0) return;
         const timer = setInterval(() => {
             setSeconds(prev => (prev > 0 ? prev - 1 : 0));
@@ -34,7 +40,7 @@ const TurnIndicator: React.FC<TurnIndicatorProps> = ({ variant, activeTurn, secL
         return () => clearInterval(timer);
     }, [seconds]);
 
-    React.useEffect(() => {
+    useEffect(() => {
         const mins = Math.floor(seconds / 60);
         const secs = seconds % 60;
         setFormattedTime(
@@ -42,37 +48,71 @@ const TurnIndicator: React.FC<TurnIndicatorProps> = ({ variant, activeTurn, secL
         );
     }, [seconds]);
 
-    const getGameClockIndicator = (
-        gameFinished?: boolean, winner?: 'white' | 'black' | undefined,
-        gameTimedOut?: 'no-show' | 'turn' | undefined,
-        timeoutVariant?: 'no-show' | 'turn' | undefined
-    ): any => {
+    const getTimerClass = () => {
+        if (gameFinished) return 'timer-badge--finished';
+        if (gameTimedOut) return 'timer-badge--timeout';
+        if (seconds <= 30) return 'timer-badge--danger';
+        if (seconds <= 120) return 'timer-badge--warning';
+        return '';
+    };
+
+    const getTimerContent = () => {
         if (gameFinished) {
-            if (winner === 'white') return (<div className='timer'><p>Game Over - White Wins!</p></div>);
-            else if (winner === 'black') return (<div className='timer'><p>Game Over - Black Wins!</p></div>);
-            else return (<div className='timer'><p>Game Over - Draw!</p></div>);
+            if (winner === 'white') return { label: 'Winner', time: 'White' };
+            if (winner === 'black') return { label: 'Winner', time: 'Black' };
+            return { label: 'Result', time: 'Draw' };
         }
         if (gameTimedOut) {
-            if (gameTimedOut === 'no-show') return (<div className='timer'><p>Timeout No-Show</p></div>);
-            else if (gameTimedOut === 'turn') return (<div className='timer'><p>Timeout Move</p></div>);
+            return {
+                label: 'Timeout',
+                time: gameTimedOut === 'no-show' ? 'No-Show' : 'Move'
+            };
         }
-        return (<div className='timer'><p>{timeoutVariant === 'no-show' ? 'No-Show:' : 'Move:'} {formattedTime}</p></div>);
-    }
+        return {
+            label: timeoutVariant === 'no-show' ? 'No-Show' : 'Move',
+            time: formattedTime
+        };
+    };
+
+    const getPlayerName = (index: number) => {
+        if (players.length <= index) return '???';
+        if (players[index] === player) return 'You';
+        return addressEllipsis(players[index]);
+    };
+
+    const isYou = (index: number) => players.length > index && players[index] === player;
+
+    const timerContent = getTimerContent();
 
     return (
-        <div className={`${variant}`}>
-            <LightCard>
-                <div className='player-label-container'>
-                    <div className={`white-batch ${activeTurn === 'white' ? ' active-turn' : ''}`}></div>
-                    <div>{players.length > 0 ? ( players[0] === player ? 'You' : addressEllipsis(players[0]) ) : ( '???' )}</div>
+        <div className="turn-indicator">
+            <GlassCard>
+                <div className="players-container">
+                    {/* White Player */}
+                    <div className="player-info">
+                        <div className={`player-badge player-badge--white ${activeTurn === 'white' && !gameFinished ? 'player-badge--active' : ''}`} />
+                        <span className={`player-name ${activeTurn === 'white' ? 'player-name--active' : ''} ${isYou(0) ? 'player-name--you' : ''}`}>
+                            {getPlayerName(0)}
+                        </span>
+                    </div>
+
+                    <span className="vs-divider">vs</span>
+
+                    {/* Black Player */}
+                    <div className="player-info player-info--reverse">
+                        <div className={`player-badge player-badge--black ${activeTurn === 'black' && !gameFinished ? 'player-badge--active' : ''}`} />
+                        <span className={`player-name ${activeTurn === 'black' ? 'player-name--active' : ''} ${isYou(1) ? 'player-name--you' : ''}`}>
+                            {getPlayerName(1)}
+                        </span>
+                    </div>
                 </div>
-                <Divider sx={{ margin: 1 }} />
-                <div className='player-label-container'>
-                    <div className={`black-batch ${activeTurn === 'black' ? ' active-turn' : ''}`}></div>
-                    <div>{players.length > 1 ? ( players[1] === player ? 'You' : addressEllipsis(players[1]) ) : '???'}</div>
+
+                {/* Timer */}
+                <div className={`timer-badge ${getTimerClass()}`}>
+                    <span className="timer-badge__label">{timerContent.label}</span>
+                    <span className="timer-badge__time">{timerContent.time}</span>
                 </div>
-                { getGameClockIndicator( gameFinished, winner, gameTimedOut, timeoutVariant ) }
-            </LightCard>
+            </GlassCard>
         </div>
     );
 };

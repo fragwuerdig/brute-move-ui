@@ -1,4 +1,3 @@
-import { AppBar, Box, Toolbar, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import './Head.css';
 
@@ -7,20 +6,22 @@ function Head({ children }: { children?: React.ReactNode }) {
 
     return (
         <>
-            <Box className="top-gutter">
-                <AppBar sx={{ backgroundColor: '#444444' }}>
-                    <Toolbar variant="dense">
-                        <Box height={60} alignItems={"center"} display="flex">
-                            <Typography variant="h5" color="inherit" component="div" sx={{ cursor: 'pointer' }} onClick={() => navigate('/')}>
-                                Brute<b>Move!</b>
-                            </Typography>
-                        </Box>
-                    </Toolbar>
-                </AppBar>
-            </Box>
-            <Box className="main-content">
+            <header className="header">
+                <div className="header-inner">
+                    <div className="header-logo" onClick={() => navigate('/')}>
+                        <span className="header-logo-text">
+                            Brute<strong>Move!</strong>
+                        </span>
+                    </div>
+                    <div className="header-badge">
+                        On-Chain
+                    </div>
+                </div>
+            </header>
+            <div className="header-spacer" />
+            <main className="main-content">
                 {children}
-            </Box>
+            </main>
         </>
     );
 }

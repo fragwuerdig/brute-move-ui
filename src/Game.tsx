@@ -10,10 +10,6 @@ import './Game.css';
 import TurnIndicator from './TurnIndicator';
 import { BoardCard } from './BoardCard';
 import { ActionCard } from './ActionCard';
-import Modal from '@mui/material/Modal';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import { StyledButton } from './StyledButton';
 
 
 interface GameProps {
@@ -160,7 +156,6 @@ function Game({ gameAddress, variant }: GameProps) {
       })
       .then((data: GameInfo) => {
         if (!data || !data.board) {
-          return;
           setOpenDraw(false);
           return;
         }
@@ -355,9 +350,8 @@ function Game({ gameAddress, variant }: GameProps) {
   }
 
   return variant === 'compact' ? (
-    <>
-      {
-        <TurnIndicator
+    <div className="game-container">
+      <TurnIndicator
           variant="compact"
           timeoutVariant={clockTimeLeft(gameInfo).type}
           activeTurn={gameInfo?.turn || undefined}
@@ -368,7 +362,6 @@ function Game({ gameAddress, variant }: GameProps) {
           winner={getPlayersColor(gameInfo, gameInfo?.winner)}
           gameTimedOut={gameInfo?.no_show ? 'no-show' : (gameInfo?.timeout ? 'turn' : undefined)}
         />
-      }
       <BoardCard
         variant="compact"
         fen={pendingFen ? pendingFen : (gameInfo?.board || 'start')}
@@ -391,55 +384,34 @@ function Game({ gameAddress, variant }: GameProps) {
         onClaimRewardClicked={() => handleClaimReward()}
         offerDraw={offerDraw}
       />
-      <Modal
-        open={openDraw && !drawDismissed}
-        aria-labelledby="draw-offer-modal-title"
-        aria-describedby="draw-offer-modal-description"
-      >
-        <Box
-          sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: 350,
-            bgcolor: 'background.paper',
-            border: '2px solid #000',
-            boxShadow: 24,
-            p: 4,
-            borderRadius: 2,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-          }}
-        >
-          <Typography id="draw-offer-modal-title" variant="h6" component="h2" sx={{ mb: 2 }}>
-            Draw Offer
-          </Typography>
-          <Typography id="draw-offer-modal-description" sx={{ mb: 3 }}>
-            Your opponent has offered a draw. Do you accept?
-          </Typography>
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <StyledButton
-              variant="contained"
-              color="primary"
-              onClick={() => handleAcceptDraw()}>
-              Accept
-            </StyledButton>
-            <StyledButton
-              variant="outlined"
-              color="secondary"
-              onClick={() => { setDrawDismissed(true); }}
-            >
-              Decline
-            </StyledButton>
-          </Box>
-        </Box>
-      </Modal>
-    </>
+      {/* Draw Offer Modal */}
+      {openDraw && !drawDismissed && (
+        <div className="game-modal-overlay">
+          <div className="game-modal">
+            <h3 className="game-modal__title">Draw Offer</h3>
+            <p className="game-modal__message">
+              Your opponent has offered a draw. Do you accept?
+            </p>
+            <div className="game-modal__actions">
+              <button
+                className="game-modal__btn game-modal__btn--secondary"
+                onClick={() => setDrawDismissed(true)}
+              >
+                Decline
+              </button>
+              <button
+                className="game-modal__btn game-modal__btn--primary"
+                onClick={() => handleAcceptDraw()}
+              >
+                Accept
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   ) : (
-    <>
-    </>
+    <div className="game-container" />
   );
 
   /*return (

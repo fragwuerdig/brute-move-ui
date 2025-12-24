@@ -1,0 +1,33 @@
+/* ============================================
+   GLASS CARD COMPONENT STYLES
+   ============================================ */
+
+.glass-card {
+  background: rgba(30, 31, 38, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  padding: 20px;
+  transition: all 250ms ease;
+}
+
+.glass-card:hover {
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+
+.glass-card--accent {
+  border: 1px solid rgba(247, 179, 43, 0.2);
+}
+
+.glass-card--accent:hover {
+  border-color: rgba(247, 179, 43, 0.4);
+  box-shadow: 0 12px 40px rgba(247, 179, 43, 0.1);
+}
+
+/* Compact variant for game components */
+.glass-card.compact {
+  padding: 16px;
+}

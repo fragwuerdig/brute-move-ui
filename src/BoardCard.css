@@ -1,6 +1,131 @@
+/* ============================================
+   BOARD CARD - PREMIUM STYLES
+   ============================================ */
 
-.compact {
-    width: 100%;
-    min-width: 350px;
-    max-width: 500px;
+.board-container {
+  width: 100%;
+}
+
+.board-frame {
+  width: 100%;
+  background: linear-gradient(145deg, #1e1f26 0%, #14151a 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 12px;
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transition: all 300ms ease;
+  box-sizing: border-box;
+}
+
+.board-frame:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.board-frame--active {
+  border-color: rgba(247, 179, 43, 0.3);
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.5),
+    0 0 40px rgba(247, 179, 43, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.board-frame--disabled {
+  opacity: 0.7;
+}
+
+/* Promotion Modal */
+.promotion-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+}
+
+.promotion-content {
+  background: linear-gradient(145deg, #1e1f26 0%, #14151a 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 28px 36px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  text-align: center;
+}
+
+.promotion-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 24px;
+}
+
+.promotion-pieces {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.promotion-piece {
+  width: 64px;
+  height: 64px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 200ms ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.promotion-piece:hover {
+  background: rgba(247, 179, 43, 0.15);
+  border-color: rgba(247, 179, 43, 0.5);
+  transform: translateY(-4px);
+}
+
+.promotion-piece img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
+/* Responsive */
+@media (max-width: 540px) {
+  .board-frame {
+    padding: 8px;
+    border-radius: 16px;
+  }
+
+  .promotion-piece {
+    width: 56px;
+    height: 56px;
+  }
+
+  .promotion-piece img {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+@media (max-width: 360px) {
+  .board-frame {
+    padding: 6px;
+    border-radius: 12px;
+  }
+
+  .promotion-piece {
+    width: 48px;
+    height: 48px;
+  }
+
+  .promotion-piece img {
+    width: 32px;
+    height: 32px;
+  }
 }

@@ -72,29 +72,63 @@ const Modal: React.FC<{ onSelect: (type: WalletType) => void, connecting: boolea
       left: 0,
       width: "100vw",
       height: "100vh",
-      backgroundColor: "rgba(0,0,0,0.6)",
+      backgroundColor: "rgba(0,0,0,0.85)",
+      backdropFilter: "blur(8px)",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
       zIndex: 1001,
     }}>
       <div style={{
-        backgroundColor: "#fff",
-        padding: 20,
-        borderRadius: 8,
+        background: "linear-gradient(145deg, #1e1f26 0%, #14151a 100%)",
+        border: "1px solid rgba(255, 255, 255, 0.1)",
+        padding: 32,
+        borderRadius: 20,
         display: "flex",
         flexDirection: "column",
-        gap: 10,
-        minWidth: 200,
-        textAlign: "center"
+        gap: 16,
+        minWidth: 280,
+        textAlign: "center",
+        boxShadow: "0 20px 60px rgba(0, 0, 0, 0.6)",
       }}>
         {connecting ? (
-          <div>Connecting...</div>
+          <div style={{ color: "#a0a3b1", fontSize: 15 }}>Connecting...</div>
         ) : (
           <>
-            <h3>Select Wallet</h3>
-            <button onClick={() => onSelect(WalletType.EXTENSION)}>Keplr</button>
-            <button onClick={() => onSelect(WalletType.WALLETCONNECT)}>WalletConnect</button>
+            <h3 style={{ color: "#ffffff", fontSize: 20, fontWeight: 700, margin: 0 }}>Select Wallet</h3>
+            <button
+              onClick={() => onSelect(WalletType.EXTENSION)}
+              style={{
+                padding: "14px 24px",
+                borderRadius: 12,
+                border: "none",
+                background: "linear-gradient(135deg, #f7b32b 0%, #d4941a 100%)",
+                color: "#0d0d0f",
+                fontSize: 15,
+                fontWeight: 600,
+                cursor: "pointer",
+                transition: "transform 150ms ease, box-shadow 150ms ease",
+                boxShadow: "0 4px 20px rgba(247, 179, 43, 0.3)",
+              }}
+            >
+              Keplr Extension
+            </button>
+            <button
+              onClick={() => onSelect(WalletType.WALLETCONNECT)}
+              style={{
+                padding: "14px 24px",
+                borderRadius: 12,
+                border: "1px solid rgba(255, 255, 255, 0.1)",
+                background: "rgba(255, 255, 255, 0.05)",
+                color: "#a0a3b1",
+                fontSize: 15,
+                fontWeight: 600,
+                cursor: "pointer",
+                transition: "all 150ms ease",
+              }}
+            >
+              WalletConnect
+            </button>
           </>
         )}
       </div>

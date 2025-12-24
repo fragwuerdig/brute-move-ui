@@ -1,19 +1,47 @@
+/* ============================================
+   INPUT - PREMIUM STYLES
+   ============================================ */
+
 input {
-    flex-grow: 1;
-    border-radius: 100px;
-    font-size: 16px;
-    padding: 15px;
-    border: 1px solid #E6E8EE;
-    outline: none; /* Remove default outline */
+  width: 100%;
+  padding: 14px 18px;
+  background: #1a1b21;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  color: #ffffff;
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-size: 15px;
+  transition: all 150ms ease;
+  outline: none;
+  box-sizing: border-box;
 }
 
-                        
+input::placeholder {
+  color: #6b6e7b;
+}
+
+input:hover:not(:disabled) {
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
 input:focus {
-    border-color: #E6E8EE;
-    box-shadow: 0px 0px 10px #0000001A;
+  border-color: #f7b32b;
+  box-shadow: 0 0 0 3px rgba(247, 179, 43, 0.15);
 }
 
-input:blur {
-    border-color: #E6E8EE;
-    box-shadow: none;
+input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Number input - hide arrows */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
 }

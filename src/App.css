@@ -1,0 +1,121 @@
+/* ============================================
+   APP - CONNECT WALLET SCREEN
+   ============================================ */
+
+.connect-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.connect-card {
+  max-width: 400px;
+  width: 100%;
+}
+
+.connect-card .glass-card {
+  padding: 40px 32px;
+}
+
+/* Icon */
+.connect-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 24px;
+  background: linear-gradient(135deg, rgba(247, 179, 43, 0.15) 0%, rgba(247, 179, 43, 0.05) 100%);
+  border: 1px solid rgba(247, 179, 43, 0.2);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.connect-icon svg {
+  width: 40px;
+  height: 40px;
+  stroke: #f7b32b;
+}
+
+/* Title */
+.connect-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 8px;
+}
+
+.connect-subtitle {
+  font-size: 15px;
+  color: #6b6e7b;
+  margin: 0 0 32px;
+  line-height: 1.5;
+}
+
+/* Connect Button */
+.connect-btn {
+  width: 100%;
+  padding: 16px 24px;
+  border-radius: 12px;
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 150ms ease;
+  border: none;
+  background: linear-gradient(135deg, #f7b32b 0%, #d4941a 100%);
+  color: #0d0d0f;
+  box-shadow: 0 4px 20px rgba(247, 179, 43, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.connect-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 30px rgba(247, 179, 43, 0.4);
+}
+
+.connect-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Features below connect */
+.connect-features {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  margin-top: 32px;
+}
+
+.connect-feature {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.connect-feature__icon {
+  font-size: 20px;
+}
+
+.connect-feature__text {
+  font-size: 12px;
+  color: #6b6e7b;
+}
+
+/* Responsive */
+@media (max-width: 400px) {
+  .connect-card .glass-card {
+    padding: 32px 24px;
+  }
+
+  .connect-features {
+    gap: 20px;
+  }
+}
