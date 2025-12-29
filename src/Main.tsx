@@ -13,7 +13,7 @@ const CHAINS = {
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
-      <WalletProvider chain={CHAINS['rebel-2']}>
+      <WalletProvider chain={CHAINS['columbus-5']}>
         <App />
       </WalletProvider>
     </BrowserRouter>
