@@ -15,7 +15,7 @@ function JoinRoute() {
     if (!id || !chain) return; // wait until both exist
 
     setLoading(true);
-    fetchContractStateSmart(getFactoryAddr(chain), { joinable_game: { id } })
+    fetchContractStateSmart(getFactoryAddr(chain), { joinable_game: { id } }, chain)
       .then((data) => {
         console.log(data);
         if (data?.contract) {

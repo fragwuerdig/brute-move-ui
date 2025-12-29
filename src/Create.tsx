@@ -33,7 +33,7 @@ function Create() {
     useEffect(() => {
         if (!chain) return;
         const query = { fee: { bet: (betAmount * 1000000).toString() } };
-        fetchContractStateSmart(getFactoryAddr(chain), query)
+        fetchContractStateSmart(getFactoryAddr(chain), query, chain)
             .then((data) => setFee(parseFloat(data) / 1000000))
             .catch(() => setFee(0));
     }, [betAmount, chain]);
@@ -41,14 +41,14 @@ function Create() {
     // Fetch minimum bet
     useEffect(() => {
         const query = { minimum_bet: {} };
-        fetchContractStateSmart(getFactoryAddr(chain), query)
+        fetchContractStateSmart(getFactoryAddr(chain), query, chain)
             .then((data) => setMinBetAmount(data))
             .catch(() => { });
     }, [chain]);
 
     // Check balance
     useEffect(() => {
-        fetchBankBalance(connectedAddr || "", 'uluna')
+        fetchBankBalance(connectedAddr || "", 'uluna', chain)
             .then((data) => {
                 const balance = parseFloat(data);
                 if (isNaN(balance) || isNaN(minBetAmount) || isNaN(betAmount)) {

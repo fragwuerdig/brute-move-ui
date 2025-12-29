@@ -40,7 +40,8 @@ function LeaderboardPage() {
 
             const data: [string, number][] = await fetchContractStateSmart(
                 getLeaderboardAddr(chain),
-                { leaderboard: { page: pageNum, per_page: PER_PAGE } }
+                { leaderboard: { page: pageNum, per_page: PER_PAGE } },
+                chain
             );
 
             const mapped = data.map(([address, elo]) => ({ address, elo }));

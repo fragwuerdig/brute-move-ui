@@ -37,7 +37,7 @@ function Join({ game }: JoinProps) {
 
   useEffect(() => {
     if (!game || !chain) return;
-    fetchContractStateSmart(getFactoryAddr(chain), { joinable_game: { id: game.id } })
+    fetchContractStateSmart(getFactoryAddr(chain), { joinable_game: { id: game.id } }, chain)
       .then((data) => {
         if (data?.contract) {
           navigate(`/games/${data.contract}`, { replace: true });
@@ -47,11 +47,11 @@ function Join({ game }: JoinProps) {
   }, [connectedAddr, game, chain, navigate, refresh]);
 
   useEffect(() => {
-    if (!connectedAddr) return;
-    fetchBankBalance(connectedAddr || "", 'uluna')
+    if (!connectedAddr || !chain) return;
+    fetchBankBalance(connectedAddr || "", 'uluna', chain)
       .then((data) => setBalance(data))
       .catch(() => { });
-  }, [connectedAddr]);
+  }, [connectedAddr, chain]);
 
   useEffect(() => {
     if (!game || balance === null) return;

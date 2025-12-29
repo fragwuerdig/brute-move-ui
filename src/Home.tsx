@@ -47,7 +47,7 @@ const Home: React.FC = () => {
         }
 
         setIsSearching(true);
-        fetchContractStateSmart(getFactoryAddr(chain), { joinable_game: { id: searchTerm.toLowerCase() } })
+        fetchContractStateSmart(getFactoryAddr(chain), { joinable_game: { id: searchTerm.toLowerCase() } }, chain)
             .then((data: JoinableGame) => {
                 if (data && data.id) {
                     setIsValidGame(true);
