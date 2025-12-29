@@ -16,7 +16,7 @@ export function addressEllipsis(address: string): string {
 export function fetchContractStateSmart(gameAddress: string, query: any, chain: ChainInfo<string>): Promise<any> {
 
   let queryBase64 = btoa(JSON.stringify(query));
-  let url = `${getRpcUrl(chain)}/cosmwasm/wasm/v1/contract/${gameAddress}/smart/${queryBase64}`;
+  let url = `${getLcdUrl(chain)}/cosmwasm/wasm/v1/contract/${gameAddress}/smart/${queryBase64}`;
   return fetch(url, {
     method: 'GET',
     headers: {
@@ -33,7 +33,7 @@ export function fetchContractStateSmart(gameAddress: string, query: any, chain: 
 
 export function fetchBankBalance(address: string, denom: string, chain: ChainInfo<string>): Promise<any> {
 
-  let url = `${getRpcUrl(chain)}/cosmos/bank/v1beta1/spendable_balances/${address}/by_denom?denom=${denom}`;
+  let url = `${getLcdUrl(chain)}/cosmos/bank/v1beta1/spendable_balances/${address}/by_denom?denom=${denom}`;
   return fetch(url, {
     method: 'GET',
     headers: {
@@ -79,6 +79,18 @@ export function getRpcUrl(chain: ChainInfo<string>) {
     return 'https://rebel-rpc.luncgoblins.com';
   } else if ( chain.chainId === 'columbus-5') {
     return 'https://tc-rpc.luncgoblins.com';
+  }
+
+  throw new Error
+  
+}
+
+export function getLcdUrl(chain: ChainInfo<string>) {
+
+  if ( chain.chainId === 'rebel-2' ) {
+    return 'https://rebel-lcd.luncgoblins.com';
+  } else if ( chain.chainId === 'columbus-5') {
+    return 'https://tc-lcd.luncgoblins.com';
   }
 
   throw new Error
