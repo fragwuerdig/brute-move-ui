@@ -92,6 +92,7 @@ function Game({ gameAddress, variant }: GameProps) {
 
   const [reload, setReload] = useState(0);
   const [fen, setFen] = useState("start");
+  const { chain } = useWallet();
 
   const [checkSquare, setCheckSquare] = useState<Square | null>(null);
   const [fromSquare, setFromSquare] = useState<Square | null>(null);
@@ -116,7 +117,7 @@ function Game({ gameAddress, variant }: GameProps) {
   // last move effect
   useEffect(() => {
     const query = { last_move: {} };
-    fetchContractStateSmart(gameAddress || "", query)
+    fetchContractStateSmart(gameAddress || "", query, chain)
       .then((data: string) => {
         if (data) {
           const { from, to } = splitLastMoveUCI(data);
@@ -150,7 +151,7 @@ function Game({ gameAddress, variant }: GameProps) {
 
   // fetch game info
   useEffect(() => {
-    fetchContractStateSmart(gameAddress || "", { game_info: {} })
+    fetchContractStateSmart(gameAddress || "", { game_info: {} }, chain)
       .catch(() => {
         return;
       })
