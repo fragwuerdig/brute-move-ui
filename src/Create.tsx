@@ -26,16 +26,17 @@ function Create() {
     const [minBetAmount, setMinBetAmount] = useState(1);
     const [disabledButton, setDisabledButton] = useState(false);
     const [disabledText, setDisabledText] = useState('');
-    const [fee, setFee] = useState(1);
+    const [feeUluna, setFeeUluna] = useState(0);
     const [refresh, setRefresh] = useState(0);
 
-    // Fetch fees
+    // Fetch fees (stored in uluna to avoid floating point issues)
     useEffect(() => {
         if (!chain) return;
-        const query = { fee: { bet: (betAmount * 1000000).toString() } };
+        const betUluna = betAmount * 1000000;
+        const query = { fee: { bet: betUluna.toString() } };
         fetchContractStateSmart(getFactoryAddr(chain), query, chain)
-            .then((data) => setFee(parseFloat(data) / 1000000))
-            .catch(() => setFee(0));
+            .then((data) => setFeeUluna(parseInt(data) || 0))
+            .catch(() => setFeeUluna(0));
     }, [betAmount, chain]);
 
     // Fetch minimum bet
@@ -85,7 +86,7 @@ function Create() {
                 with_color: color === 'Random' ? null : color,
             }
         };
-        const bet = `${betAmount + fee}000000`;
+        const bet = (betAmount * 1000000 + feeUluna).toString();
         const tx: UnsignedTx = {
             msgs: [
                 new MsgExecuteContract({
@@ -177,7 +178,7 @@ function Create() {
                 <div className="fee-info">
                     <div className="fee-row">
                         <span className="fee-row__label">Platform Fee</span>
-                        <span className="fee-row__value">{fee.toFixed(4)} LUNC</span>
+                        <span className="fee-row__value">{(feeUluna / 1000000).toFixed(4)} LUNC</span>
                     </div>
                     <div className="fee-row">
                         <span className="fee-row__label">Minimum Bet</span>
@@ -185,7 +186,7 @@ function Create() {
                     </div>
                     <div className="fee-row">
                         <span className="fee-row__label">Total Required</span>
-                        <span className="fee-row__value">{(betAmount + fee).toFixed(4)} LUNC</span>
+                        <span className="fee-row__value">{(betAmount + feeUluna / 1000000).toFixed(4)} LUNC</span>
                     </div>
                 </div>
 
