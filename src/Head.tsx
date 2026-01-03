@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useWallet } from "./WalletProvider";
 import { addressEllipsis } from "./Common";
 import HeaderMenu from "./HeaderMenu";
+import Footer from "./Footer";
 import pawnLogo from "./assets/pawn.png";
 import './Head.css';
 
@@ -18,7 +19,7 @@ function Head({ children }: { children?: React.ReactNode }) {
     const { connected, connectedAddr, disconnect } = useWallet();
 
     return (
-        <>
+        <div className="page-wrapper">
             <header className="header">
                 <div className="header-inner">
                     <div className="header-logo" onClick={() => navigate('/')}>
@@ -42,7 +43,8 @@ function Head({ children }: { children?: React.ReactNode }) {
             <main className="main-content">
                 {children}
             </main>
-        </>
+            <Footer />
+        </div>
     );
 }
 

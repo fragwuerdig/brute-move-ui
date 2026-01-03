@@ -129,10 +129,17 @@
   height: 64px;
 }
 
+/* Page Wrapper - enables sticky footer */
+.page-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
 /* Main Content Area */
 .main-content {
   min-width: 100%;
-  min-height: calc(100vh - 64px);
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
