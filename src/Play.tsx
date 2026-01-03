@@ -26,8 +26,12 @@ function Play() {
 
         fetchContractStateSmart(getFactoryAddr(chain), query, chain)
             .then((data: JoinableGame[]) => {
-                // Filter out games created by the current user
-                const availableGames = data.filter(game => game.opponent !== connectedAddr);
+                // Filter out:
+                // - games created by the current user
+                // - games that already have a contract assigned (already joined)
+                const availableGames = data.filter(game =>
+                    game.opponent !== connectedAddr && !game.contract
+                );
                 setGames(availableGames);
             })
             .catch((err) => {
