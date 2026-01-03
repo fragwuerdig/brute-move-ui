@@ -78,6 +78,17 @@ const Home: React.FC = () => {
                 <p className="home-hero__subtitle">Stake, play, and win on Terra Classic</p>
             </div>
 
+            {/* Quick Play Card */}
+            <GlassCard accent className="home-quickplay">
+                <div className="home-quickplay__content">
+                    <h2 className="home-quickplay__title">Quick Play</h2>
+                    <p className="home-quickplay__desc">Find an open game and jump right in</p>
+                    <button className="home-btn home-btn--play" onClick={() => navigate('/play')}>
+                        Play
+                    </button>
+                </div>
+            </GlassCard>
+
             {/* Main Card */}
             <GlassCard accent>
                 <div className="home-search">

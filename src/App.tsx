@@ -6,6 +6,7 @@ import { useWallet } from "./WalletProvider";
 import Create from "./Create";
 import JoinRoute from "./JoinRoute";
 import LeaderboardPage from "./LeaderboardPage";
+import Play from "./Play";
 import { GlassCard } from "./GlassCard";
 import './App.css';
 
@@ -31,6 +32,7 @@ function App() {
             <Route path="/games/:addr" element={<GameRoute />} />
             <Route path="/join/:id" element={<JoinRoute />} />
             <Route path="/leaderboard" element={<LeaderboardPage />} />
+            <Route path="/play" element={<Play />} />
           </Routes>
         ) : (
           <div className="connect-screen">
