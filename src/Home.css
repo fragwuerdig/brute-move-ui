@@ -37,10 +37,12 @@
 }
 
 .home-quickplay__title {
-  font-size: 18px;
+  font-size: 13px;
   font-weight: 600;
-  color: #ffffff;
-  margin: 0 0 12px;
+  color: #a0a3b1;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0;
 }
 
 .home-quickplay__desc {
