@@ -124,6 +124,34 @@
   transition: stroke 150ms ease;
 }
 
+/* Notification Bell */
+.header-notifications {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  border-radius: 50%;
+  color: #22c55e;
+  cursor: pointer;
+  transition: all 150ms ease;
+  text-decoration: none;
+}
+
+.header-notifications:hover {
+  background: rgba(34, 197, 94, 0.2);
+  border-color: rgba(34, 197, 94, 0.5);
+  transform: scale(1.05);
+}
+
+.header-notifications svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+}
+
 /* Header Spacer */
 .header-spacer {
   height: 64px;
@@ -280,6 +308,16 @@
   .header-menu__item {
     padding: 8px 12px;
     font-size: 12px;
+  }
+
+  .header-notifications {
+    width: 32px;
+    height: 32px;
+  }
+
+  .header-notifications svg {
+    width: 16px;
+    height: 16px;
   }
 
   .header-wallet {
