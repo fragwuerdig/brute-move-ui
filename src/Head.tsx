@@ -1,6 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { useWallet } from "./WalletProvider";
 import { addressEllipsis } from "./Common";
+import HeaderMenu from "./HeaderMenu";
+import pawnLogo from "./assets/pawn.png";
 import './Head.css';
 
 const DisconnectIcon = () => (
@@ -20,23 +22,19 @@ function Head({ children }: { children?: React.ReactNode }) {
             <header className="header">
                 <div className="header-inner">
                     <div className="header-logo" onClick={() => navigate('/')}>
+                        <img src={pawnLogo} alt="BruteMove" className="header-pawn" />
                         <span className="header-logo-text">
                             Brute<strong>Move!</strong>
                         </span>
                     </div>
                     <div className="header-nav">
-                        <button className="header-nav-link" onClick={() => navigate('/leaderboard')}>
-                            Leaderboard
-                        </button>
+                        <HeaderMenu />
                         {connected && connectedAddr && (
                             <button className="header-wallet" onClick={disconnect}>
                                 <span className="header-wallet__address">{addressEllipsis(connectedAddr)}</span>
                                 <DisconnectIcon />
                             </button>
                         )}
-                        <div className="header-badge">
-                            On-Chain
-                        </div>
                     </div>
                 </div>
             </header>
