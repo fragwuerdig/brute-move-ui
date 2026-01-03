@@ -1,4 +1,5 @@
 import { version } from '../package.json';
+import blameDaoLogo from './assets/blamedao-logo.png';
 import './Footer.css';
 
 const TwitterIcon = () => (
@@ -56,6 +57,12 @@ function Footer() {
                             {link.icon}
                         </a>
                     ))}
+                </div>
+                <div className="footer-powered">
+                    <span>Powered by</span>
+                    <a href="https://daodao.zone/dao/terra14gcsk5f4ftyhpztvqxqup4gz25qntd6k5swlv3e5v5pvfrz9tzhq0zyz5m" target="_blank" rel="noopener noreferrer">
+                        <img src={blameDaoLogo} alt="$blame DAO" className="footer-dao-logo" />
+                    </a>
                 </div>
                 <p className="footer-copyright">
                     &copy; {new Date().getFullYear()} BruteMove &middot; v{version}
