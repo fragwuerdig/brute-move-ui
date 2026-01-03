@@ -1,6 +1,10 @@
 import { useNavigate } from "react-router-dom";
 import { useWallet } from "./WalletProvider";
 import { addressEllipsis } from "./Common";
+import { config } from "./config";
+import HeaderMenu from "./HeaderMenu";
+import Footer from "./Footer";
+import pawnLogo from "./assets/pawn.png";
 import './Head.css';
 
 const DisconnectIcon = () => (
@@ -11,32 +15,46 @@ const DisconnectIcon = () => (
     </svg>
 );
 
+const BellIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+    </svg>
+);
+
 function Head({ children }: { children?: React.ReactNode }) {
     const navigate = useNavigate();
     const { connected, connectedAddr, disconnect } = useWallet();
 
     return (
-        <>
+        <div className="page-wrapper">
             <header className="header">
                 <div className="header-inner">
                     <div className="header-logo" onClick={() => navigate('/')}>
+                        <img src={pawnLogo} alt="BruteMove" className="header-pawn" />
                         <span className="header-logo-text">
                             Brute<strong>Move!</strong>
                         </span>
                     </div>
                     <div className="header-nav">
-                        <button className="header-nav-link" onClick={() => navigate('/leaderboard')}>
-                            Leaderboard
-                        </button>
+                        <HeaderMenu />
                         {connected && connectedAddr && (
-                            <button className="header-wallet" onClick={disconnect}>
-                                <span className="header-wallet__address">{addressEllipsis(connectedAddr)}</span>
-                                <DisconnectIcon />
-                            </button>
+                            <>
+                                <a
+                                    href={`https://t.me/${config.telegramBotUsername}?start=${connectedAddr}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="header-notifications"
+                                    title="Enable notifications"
+                                >
+                                    <BellIcon />
+                                </a>
+                                <button className="header-wallet" onClick={disconnect}>
+                                    <span className="header-wallet__address">{addressEllipsis(connectedAddr)}</span>
+                                    <DisconnectIcon />
+                                </button>
+                            </>
                         )}
-                        <div className="header-badge">
-                            On-Chain
-                        </div>
                     </div>
                 </div>
             </header>
@@ -44,7 +62,8 @@ function Head({ children }: { children?: React.ReactNode }) {
             <main className="main-content">
                 {children}
             </main>
-        </>
+            <Footer />
+        </div>
     );
 }
 
