@@ -65,7 +65,7 @@ function Footer() {
                     </a>
                 </div>
                 <p className="footer-copyright">
-                    &copy; {new Date().getFullYear()} BruteMove &middot; v{version}
+                    &copy; {new Date().getFullYear()} BruteMove &middot; v{version} &middot; {import.meta.env.VITE_NETWORK_ID || 'rebel-2'}
                 </p>
             </div>
         </footer>
