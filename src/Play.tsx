@@ -5,12 +5,25 @@ import { useWallet } from './WalletProvider';
 import { GlassCard } from './GlassCard';
 import './Play.css';
 
+type PeriodOption = {
+    label: string;
+    value: number | null; // null = all time
+};
+
+const PERIOD_OPTIONS: PeriodOption[] = [
+    { label: '24 hours', value: 60 * 60 * 24 },
+    { label: '7 days', value: 60 * 60 * 24 * 7 },
+    { label: '30 days', value: 60 * 60 * 24 * 30 },
+    { label: 'All time', value: 60 * 60 * 24 * 365 * 10 }, // 10 years as "all time"
+];
+
 function Play() {
     const navigate = useNavigate();
     const { chain, connectedAddr } = useWallet();
     const [games, setGames] = useState<JoinableGame[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [period, setPeriod] = useState<number | null>(PERIOD_OPTIONS[0].value);
 
     useEffect(() => {
         if (!chain) return;
@@ -20,7 +33,8 @@ function Play() {
 
         const query = {
             joinable_games: {
-                limit: 20
+                limit: 20,
+                ...(period !== null && { period })
             }
         };
 
@@ -41,7 +55,7 @@ function Play() {
             .finally(() => {
                 setLoading(false);
             });
-    }, [chain, connectedAddr]);
+    }, [chain, connectedAddr, period]);
 
     const handleJoinGame = (gameId: string) => {
         navigate(`/join/${gameId}`);
@@ -66,6 +80,17 @@ function Play() {
             <div className="play-header">
                 <h1 className="play-header__title">Quick Play</h1>
                 <p className="play-header__subtitle">Find an open game and jump right in</p>
+                <div className="play-period-filter">
+                    {PERIOD_OPTIONS.map((option) => (
+                        <button
+                            key={option.label}
+                            className={`play-period-btn ${period === option.value ? 'play-period-btn--active' : ''}`}
+                            onClick={() => setPeriod(option.value)}
+                        >
+                            {option.label}
+                        </button>
+                    ))}
+                </div>
             </div>
 
             <GlassCard accent>
