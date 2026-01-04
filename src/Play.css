@@ -24,6 +24,46 @@
   margin: 0;
 }
 
+/* Period Filter */
+.play-period-filter {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.play-period-btn {
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-weight: 500;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 150ms ease;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  color: #6b6e7b;
+}
+
+.play-period-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #a0a3b1;
+}
+
+.play-period-btn--active {
+  background: rgba(247, 179, 43, 0.15);
+  border-color: rgba(247, 179, 43, 0.4);
+  color: #f7b32b;
+}
+
+.play-period-btn--active:hover {
+  background: rgba(247, 179, 43, 0.2);
+  border-color: rgba(247, 179, 43, 0.5);
+  color: #f7b32b;
+}
+
 .play-content {
   min-height: 120px;
 }
