@@ -44,15 +44,13 @@ export interface ChessBoardProps {
 // Icons
 const UndoIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <polyline points="1 4 1 10 7 10" />
-        <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+        <polyline points="15 18 9 12 15 6" />
     </svg>
 );
 
 const RedoIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <polyline points="23 4 23 10 17 10" />
-        <path d="M20.49 15a9 9 0 1 1-2.13-9.36L23 10" />
+        <polyline points="9 18 15 12 9 6" />
     </svg>
 );
 
