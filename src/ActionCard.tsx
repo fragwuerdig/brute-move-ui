@@ -10,6 +10,7 @@ interface ActionCardProps {
     onShareClicked?: () => void;
     onSettleClicked?: () => void;
     onClaimRewardClicked?: () => void;
+    onExploreClicked?: () => void;
     showSettle?: boolean;
     showClaimReward?: boolean;
 }
@@ -25,6 +26,14 @@ const ShareIcon = () => (
     </svg>
 );
 
+// Explore icon SVG (compass)
+const ExploreIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10" />
+        <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
+    </svg>
+);
+
 export function ActionCard({
     offerDraw,
     disabled,
@@ -33,6 +42,7 @@ export function ActionCard({
     onShareClicked,
     onSettleClicked,
     onClaimRewardClicked,
+    onExploreClicked,
     showSettle,
     showClaimReward
 }: ActionCardProps) {
@@ -82,6 +92,14 @@ export function ActionCard({
                             Claim Reward
                         </button>
                     )}
+
+                    <button
+                        className="action-btn action-btn--ghost"
+                        onClick={onExploreClicked}
+                        aria-label="Explore position"
+                    >
+                        <ExploreIcon />
+                    </button>
 
                     <button
                         className="action-btn action-btn--ghost"

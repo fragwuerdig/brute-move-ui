@@ -202,7 +202,66 @@
   color: #ef4444;
 }
 
-/* Responsive */
+/* Sidebar variant - stack players vertically */
+.game-sidebar .turn-indicator .glass-card {
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+}
+
+.game-sidebar .players-container {
+  flex-direction: column;
+  width: 100%;
+  gap: 6px;
+}
+
+.game-sidebar .player-info {
+  width: 100%;
+  justify-content: space-between;
+}
+
+.game-sidebar .player-info--reverse {
+  flex-direction: row;
+}
+
+.game-sidebar .vs-divider {
+  text-align: center;
+}
+
+.game-sidebar .timer-badge {
+  width: 100%;
+  justify-content: center;
+}
+
+/* Responsive - mobile reverts to horizontal layout */
+@media (max-width: 800px) {
+  .game-sidebar .turn-indicator .glass-card {
+    flex-direction: row;
+    gap: 16px;
+    padding: 16px 20px;
+  }
+
+  .game-sidebar .players-container {
+    flex-direction: row;
+    gap: 24px;
+    flex: 1;
+  }
+
+  .game-sidebar .player-info {
+    width: auto;
+    justify-content: flex-start;
+  }
+
+  .game-sidebar .player-info--reverse {
+    flex-direction: row-reverse;
+  }
+
+  .game-sidebar .timer-badge {
+    width: auto;
+    flex-shrink: 0;
+  }
+}
+
 @media (max-width: 500px) {
   .turn-indicator .glass-card {
     flex-direction: column;

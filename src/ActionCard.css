@@ -163,6 +163,34 @@
   height: 18px;
 }
 
+/* Sidebar variant - stack vertically */
+.game-sidebar .action-bar .glass-card {
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+}
+
+.game-sidebar .draw-toggle {
+  width: 100%;
+  justify-content: flex-start;
+}
+
+.game-sidebar .action-buttons {
+  width: 100%;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+.game-sidebar .action-btn {
+  padding: 8px 12px;
+  font-size: 12px;
+}
+
+.game-sidebar .action-btn--ghost {
+  padding: 8px;
+  min-width: 36px;
+}
+
 /* Responsive */
 @media (max-width: 500px) {
   .action-bar .glass-card {
