@@ -3,11 +3,77 @@
    ============================================ */
 
 .game-container {
-  width: min(700px, calc(100vw - 32px));
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 16px;
+  width: 100%;
+  max-width: 1100px;
+}
+
+/* Board section - sized to fit viewport */
+.game-board-section {
+  flex: 0 0 auto;
+  width: clamp(300px, calc(100vh - 100px), 750px);
+}
+
+/* Sidebar with controls */
+.game-sidebar {
+  flex: 1;
+  min-width: 220px;
+  max-width: 320px;
   display: flex;
   flex-direction: column;
-  align-items: stretch;
-  gap: 16px;
+  gap: 12px;
+  /* Match board height */
+  height: clamp(300px, calc(100vh - 100px), 750px);
+}
+
+/* Move history fills available space */
+.game-move-history {
+  flex: 1;
+  min-height: 0;
+  background: linear-gradient(145deg, #1e1f26 0%, #14151a 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+}
+
+/* Mobile turn indicator - hidden on desktop */
+.game-mobile-turn {
+  display: none;
+  width: 100%;
+}
+
+/* Mobile/narrow: stack vertically */
+@media (max-width: 800px) {
+  .game-container {
+    flex-direction: column;
+    align-items: center;
+    width: min(500px, calc(100vw - 32px));
+  }
+
+  .game-mobile-turn {
+    display: block;
+    order: -1; /* Ensure it's first */
+  }
+
+  .game-board-section {
+    width: 100%;
+  }
+
+  .game-sidebar {
+    width: 100%;
+    max-width: none;
+    height: auto;
+  }
+
+  .game-sidebar .turn-indicator {
+    display: none;
+  }
+
+  .game-move-history {
+    display: none;
+  }
 }
 
 /* Modal Overlay */
