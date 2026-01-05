@@ -127,14 +127,14 @@ function getLegalMoveStyles(fen: string, selectedSquare: Square | null, hasPiece
     for (const move of legalMoves) {
         const targetHasPiece = hasPiece(move.to);
         if (targetHasPiece) {
-            // Capture: crisp ring around the piece
+            // Capture: soft ring around the piece
             styles[move.to] = {
-                background: 'radial-gradient(circle at center, transparent 54%, rgba(0, 0, 0, 0.12) 56%, rgba(0, 0, 0, 0.12) 68%, transparent 70%)',
+                background: 'radial-gradient(circle at center, transparent 53%, rgba(0, 0, 0, 0.12) 57%, rgba(0, 0, 0, 0.12) 67%, transparent 71%)',
             };
         } else {
-            // Empty square: crisp dot
+            // Empty square: soft dot with slight blur
             styles[move.to] = {
-                background: 'radial-gradient(circle at center, rgba(0, 0, 0, 0.15) 0%, rgba(0, 0, 0, 0.15) 14%, transparent 16%)',
+                background: 'radial-gradient(circle at center, rgba(0, 0, 0, 0.15) 0%, rgba(0, 0, 0, 0.13) 12%, rgba(0, 0, 0, 0.04) 16%, transparent 18%)',
             };
         }
     }
