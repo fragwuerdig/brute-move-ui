@@ -277,11 +277,12 @@ export function useOnChainGame({ gameAddress }: UseOnChainGameOptions): OnChainG
     }, [gameAddress, chain, reloadTrigger]);
 
     // Fetch history on mount and when game info changes
+    // Use both fullmoves and board to detect changes reliably
     useEffect(() => {
         if (gameInfo) {
             refreshHistory();
         }
-    }, [gameInfo?.fullmoves, refreshHistory]);
+    }, [gameInfo?.fullmoves, gameInfo?.board, refreshHistory]);
 
     // Fetch contract balance (to check if rewards can be claimed)
     useEffect(() => {
