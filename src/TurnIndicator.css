@@ -265,22 +265,54 @@
 @media (max-width: 500px) {
   .turn-indicator .glass-card {
     flex-direction: column;
-    gap: 12px;
-    padding: 14px 16px;
+    gap: 10px;
+    padding: 10px 14px;
   }
 
   .players-container {
     width: 100%;
     justify-content: space-between;
+    gap: 12px;
+  }
+
+  .player-info {
+    gap: 8px;
+  }
+
+  .player-badge {
+    width: 18px;
+    height: 18px;
+  }
+
+  .player-badge--active::before {
+    inset: -3px;
   }
 
   .player-name {
-    max-width: 80px;
-    font-size: 13px;
+    max-width: 70px;
+    font-size: 12px;
+  }
+
+  .vs-divider {
+    font-size: 10px;
   }
 
   .timer-badge {
     width: 100%;
     justify-content: center;
+    padding: 5px 10px;
+    gap: 6px;
+  }
+
+  .timer-badge__label {
+    font-size: 9px;
+  }
+
+  .timer-badge__time {
+    font-size: 12px;
+  }
+
+  .timer-badge--finished {
+    padding: 6px 12px;
   }
 }
