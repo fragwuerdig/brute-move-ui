@@ -107,9 +107,14 @@ function Game({ gameAddress, variant }: GameProps) {
             .catch((error) => alert('Error: ' + error.message));
     };
 
-    // Check if player can claim reward
-    const canClaimReward = onChain.gameInfo?.is_finished &&
+    // Check if game is finished and reward can be claimed
+    const showClaimReward = onChain.gameInfo?.is_finished &&
         (connectedAddr === onChain.gameInfo?.players[0] || connectedAddr === onChain.gameInfo?.players[1]);
+
+    // Check if the connected user is the winner and there's balance to claim
+    const canClaimReward = onChain.gameInfo?.is_finished &&
+        onChain.gameInfo?.winner === connectedAddr &&
+        onChain.contractBalance > 0;
 
     // Check if settle button should show
     const showSettle = (onChain.gameInfo?.no_show || onChain.gameInfo?.timeout) && !onChain.gameInfo?.is_finished;
@@ -196,7 +201,8 @@ function Game({ gameAddress, variant }: GameProps) {
                     onSettleClicked={handleClaimTimeout}
                     onExploreClicked={enterExploration}
                     showSettle={showSettle}
-                    showClaimReward={canClaimReward}
+                    showClaimReward={showClaimReward}
+                    canClaimReward={canClaimReward}
                     onClaimRewardClicked={handleClaimReward}
                     offerDraw={offerDraw}
                 />

@@ -3,7 +3,7 @@ import { Chess } from 'chess.js';
 import { MsgExecuteContract } from '@goblinhunt/cosmes/client';
 import type { UnsignedTx } from '@goblinhunt/cosmes/wallet';
 import { useWallet } from '../WalletProvider';
-import { fetchContractStateSmart, type GameInfo } from '../Common';
+import { fetchContractStateSmart, fetchBankBalance, type GameInfo } from '../Common';
 import type { Square } from 'react-chessboard/dist/chessboard/types';
 
 export interface UseOnChainGameOptions {
@@ -15,6 +15,7 @@ export interface OnChainGameState {
     gameInfo: GameInfo | null;
     isLoading: boolean;
     error: Error | null;
+    contractBalance: number; // Balance in LUNC (0 means no reward to claim)
 
     // Current position (respects history navigation)
     fen: string;
@@ -130,6 +131,7 @@ export function useOnChainGame({ gameAddress }: UseOnChainGameOptions): OnChainG
     const [gameInfo, setGameInfo] = useState<GameInfo | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
+    const [contractBalance, setContractBalance] = useState<number>(0);
 
     // History state
     const [history, setHistory] = useState<string[]>([]);
@@ -280,6 +282,24 @@ export function useOnChainGame({ gameAddress }: UseOnChainGameOptions): OnChainG
             refreshHistory();
         }
     }, [gameInfo?.fullmoves, refreshHistory]);
+
+    // Fetch contract balance (to check if rewards can be claimed)
+    useEffect(() => {
+        if (!gameAddress || !chain) return;
+
+        const fetchBalance = async () => {
+            try {
+                const balance = await fetchBankBalance(gameAddress, 'uluna', chain);
+                setContractBalance(typeof balance === 'number' ? balance : 0);
+            } catch {
+                setContractBalance(0);
+            }
+        };
+
+        fetchBalance();
+
+        // Re-fetch when game info changes (e.g., after claiming)
+    }, [gameAddress, chain, gameInfo?.is_finished, reloadTrigger]);
 
     // History navigation
     const goToMove = useCallback((index: number) => {
@@ -453,6 +473,7 @@ export function useOnChainGame({ gameAddress }: UseOnChainGameOptions): OnChainG
         gameInfo,
         isLoading,
         error,
+        contractBalance,
 
         fen: currentFen,
         lastMove,

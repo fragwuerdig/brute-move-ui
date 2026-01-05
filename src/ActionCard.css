@@ -40,6 +40,14 @@
   color: #f7b32b;
 }
 
+.draw-toggle__label--short {
+  display: none;
+}
+
+.draw-toggle__label--full {
+  display: inline;
+}
+
 /* Custom Toggle Switch */
 .toggle-switch {
   position: relative;
@@ -114,6 +122,23 @@
   box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
 }
 
+.action-btn--danger-icon {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  box-shadow: none;
+  padding: 10px;
+  min-width: 40px;
+  width: 40px;
+  height: 40px;
+}
+
+.action-btn--danger-icon:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.25);
+  color: #fca5a5;
+  border-color: rgba(239, 68, 68, 0.5);
+}
+
 .action-btn--primary {
   background: linear-gradient(135deg, #f7b32b 0%, #d4941a 100%);
   color: #0d0d0f;
@@ -125,10 +150,19 @@
   box-shadow: 0 6px 20px rgba(247, 179, 43, 0.4);
 }
 
+.action-btn--primary svg {
+  width: 18px;
+  height: 18px;
+}
+
 .action-btn--success {
   background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
   color: white;
   box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
+  padding: 10px;
+  min-width: 40px;
+  width: 40px;
+  height: 40px;
 }
 
 .action-btn--success:hover:not(:disabled) {
@@ -143,6 +177,8 @@
   box-shadow: none;
   padding: 10px;
   min-width: 40px;
+  width: 40px;
+  height: 40px;
 }
 
 .action-btn--ghost:hover:not(:disabled) {
@@ -193,24 +229,166 @@
 
 /* Responsive */
 @media (max-width: 500px) {
-  .action-bar .glass-card {
-    flex-direction: column;
-    gap: 14px;
-    padding: 16px;
+  .action-bar .glass-card,
+  .game-sidebar .action-bar .glass-card {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 12px 14px;
   }
 
-  .draw-toggle {
-    width: 100%;
-    justify-content: space-between;
+  .draw-toggle,
+  .game-sidebar .draw-toggle {
+    gap: 8px;
+    flex: 0 0 auto;
+    width: auto;
   }
 
-  .action-buttons {
-    width: 100%;
+  .toggle-switch {
+    width: 36px;
+    height: 20px;
+  }
+
+  .toggle-switch::after {
+    top: 2px;
+    left: 2px;
+    width: 14px;
+    height: 14px;
+  }
+
+  .toggle-switch--active::after {
+    left: 18px;
+  }
+
+  .draw-toggle__label {
+    font-size: 12px;
+  }
+
+  .draw-toggle__label--full {
+    display: none;
+  }
+
+  .draw-toggle__label--short {
+    display: inline;
+  }
+
+  .action-buttons,
+  .game-sidebar .action-buttons {
+    flex: 1;
+    width: auto;
     justify-content: flex-end;
+    gap: 8px;
   }
 
   .action-btn {
-    padding: 10px 14px;
-    font-size: 12px;
+    padding: 8px 12px;
+    font-size: 11px;
   }
+
+  .action-btn--ghost {
+    padding: 8px;
+    min-width: 34px;
+  }
+
+  .action-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* Resign Confirmation Modal */
+.action-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.action-modal {
+  background: linear-gradient(145deg, #1e1f26 0%, #14151a 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 360px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.action-modal__title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0 0 12px 0;
+}
+
+.action-modal__message {
+  font-size: 14px;
+  color: #a0a3b1;
+  line-height: 1.5;
+  margin: 0 0 24px 0;
+}
+
+.action-modal__actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.action-modal__btn {
+  padding: 10px 20px;
+  border-radius: 100px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 150ms ease;
+  border: none;
+}
+
+.action-modal__btn--secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: #a0a3b1;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.action-modal__btn--secondary:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+}
+
+.action-modal__btn--danger {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+}
+
+.action-modal__btn--danger:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+}
+
+.action-modal__btn--primary {
+  background: linear-gradient(135deg, #f7b32b 0%, #d4941a 100%);
+  color: #0d0d0f;
+  box-shadow: 0 4px 15px rgba(247, 179, 43, 0.3);
+}
+
+.action-modal__btn--primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(247, 179, 43, 0.4);
+}
+
+.action-modal__btn--success {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
+}
+
+.action-modal__btn--success:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(34, 197, 94, 0.4);
 }
