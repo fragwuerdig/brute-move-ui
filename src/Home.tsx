@@ -83,9 +83,14 @@ const Home: React.FC = () => {
                 <div className="home-quickplay__content">
                     <h2 className="home-quickplay__title">Quick Play</h2>
                     <p className="home-quickplay__desc">Find an open game and jump right in</p>
-                    <button className="home-btn home-btn--play" onClick={() => navigate('/play')}>
-                        Play
-                    </button>
+                    <div className="home-quickplay__buttons">
+                        <button className="home-btn home-btn--play" onClick={() => navigate('/play')}>
+                            Play
+                        </button>
+                        <button className="home-btn home-btn--secondary" onClick={() => navigate('/my-games')}>
+                            My Games
+                        </button>
+                    </div>
                 </div>
             </GlassCard>
 

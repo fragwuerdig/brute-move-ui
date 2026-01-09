@@ -31,8 +31,9 @@ const ChevronIcon = ({ isOpen }: { isOpen: boolean }) => (
 );
 
 const menuItems: MenuItem[] = [
+    { label: 'Play', path: '/play' },
+    { label: 'My Games', path: '/my-games' },
     { label: 'Leaderboard', path: '/leaderboard' },
-    // Add more menu items here as needed
 ];
 
 function HeaderMenu() {

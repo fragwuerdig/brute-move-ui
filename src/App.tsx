@@ -7,6 +7,7 @@ import Create from "./Create";
 import JoinRoute from "./JoinRoute";
 import LeaderboardPage from "./LeaderboardPage";
 import Play from "./Play";
+import MyGames from "./MyGames";
 import { GlassCard } from "./GlassCard";
 import './App.css';
 
@@ -33,6 +34,7 @@ function App() {
             <Route path="/join/:id" element={<JoinRoute />} />
             <Route path="/leaderboard" element={<LeaderboardPage />} />
             <Route path="/play" element={<Play />} />
+            <Route path="/my-games" element={<MyGames />} />
           </Routes>
         ) : (
           <div className="connect-screen">
