@@ -6,6 +6,7 @@ const REBEL_GAMEDB = 'terra183e9ul80dss0q708vwzjr364sm39elcuuyduld7fnry8t8n4vr9s
 
 const COLUMBUS_FACTORY = 'terra1y9xqqe7tfekmjvumt5d5guapvrged0dq0e0v9z7afm80z4wpkujqszy3cw';
 const COLUMBUS_LEADERBOARD = 'terra1ej2fmakaq24qxh3fttxn3uma9l3j0y9elyp85ecft2rktpejvtgsyau2mj';
+const COLUMBUS_GAMEDB = 'terra1tuae4mshuu3fna25j25k4anyv9dz7qcyqntlmvd9ewprztq5m0hsd6erl9';
 
 export function addressEllipsis(address: string): string {
   const parts = address.split('1');
@@ -78,6 +79,9 @@ export function getGameDbAddr(chain: ChainInfo<string>) {
 
   if ( chain.chainId === 'rebel-2' ) {
     return REBEL_GAMEDB;
+  }
+  else if ( chain.chainId === 'columbus-5') {
+    return COLUMBUS_GAMEDB;
   }
 
   throw new Error
