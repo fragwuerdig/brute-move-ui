@@ -1,0 +1,334 @@
+.mygames-container {
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.mygames-header {
+  text-align: center;
+  padding: 20px 0 10px;
+}
+
+.mygames-header__title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 8px;
+}
+
+.mygames-header__subtitle {
+  font-size: 15px;
+  color: #6b6e7b;
+  margin: 0;
+}
+
+/* Section Styles */
+.mygames-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.mygames-section__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #a0a3b1;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0;
+}
+
+.mygames-section__icon {
+  font-size: 16px;
+}
+
+.mygames-section__desc {
+  font-size: 13px;
+  color: #6b6e7b;
+  margin: -8px 0 0 0;
+}
+
+/* Loading & Error States */
+.mygames-loading,
+.mygames-error {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.mygames-loading p {
+  font-size: 14px;
+  color: #6b6e7b;
+  margin: 0;
+}
+
+.mygames-error p {
+  font-size: 14px;
+  color: #ef4444;
+  margin: 0;
+}
+
+/* Empty State */
+.mygames-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 24px 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+}
+
+.mygames-empty p {
+  font-size: 14px;
+  color: #6b6e7b;
+  margin: 0 0 16px;
+}
+
+.mygames-empty p:last-child {
+  margin-bottom: 0;
+}
+
+/* Games List */
+.mygames-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Individual Game Row */
+.mygames-game {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.mygames-game:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.mygames-game--ongoing {
+  border-left: 3px solid #22c55e;
+}
+
+.mygames-game--finished {
+  border-left: 3px solid #6b6e7b;
+}
+
+.mygames-game--spectate {
+  border-left: 3px solid #f7b32b;
+}
+
+.mygames-game--challenge {
+  border-left: 3px solid #8b5cf6;
+}
+
+.mygames-game__bet {
+  font-size: 14px;
+  font-weight: 600;
+  color: #f7b32b;
+}
+
+/* Color Dots */
+.mygames-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: block;
+}
+
+.mygames-dot--white {
+  background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.mygames-dot--black {
+  background: linear-gradient(135deg, #3a3b42 0%, #1a1b21 100%);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.mygames-game__color {
+  width: 32px;
+  display: flex;
+  justify-content: center;
+}
+
+.mygames-game__players {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mygames-vs {
+  font-size: 10px;
+  color: #6b6e7b;
+  font-weight: 500;
+}
+
+/* Game Info */
+.mygames-game__info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.mygames-game__opponent,
+.mygames-game__matchup {
+  font-size: 14px;
+  font-weight: 500;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mygames-game__time {
+  font-size: 12px;
+  color: #6b6e7b;
+}
+
+/* Game Action */
+.mygames-game__action {
+  display: flex;
+  align-items: center;
+}
+
+.mygames-arrow {
+  font-size: 18px;
+  color: #6b6e7b;
+  transition: transform 150ms ease, color 150ms ease;
+}
+
+.mygames-game:hover .mygames-arrow {
+  color: #22c55e;
+  transform: translateX(4px);
+}
+
+.mygames-watch {
+  font-size: 12px;
+  font-weight: 500;
+  color: #f7b32b;
+  padding: 4px 10px;
+  background: rgba(247, 179, 43, 0.1);
+  border-radius: 6px;
+  transition: background 150ms ease;
+}
+
+.mygames-game:hover .mygames-watch {
+  background: rgba(247, 179, 43, 0.2);
+}
+
+/* Result Badge */
+.mygames-result {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+.mygames-result--won {
+  color: #22c55e;
+  background: rgba(34, 197, 94, 0.15);
+}
+
+.mygames-result--lost {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.15);
+}
+
+.mygames-result--draw {
+  color: #6b6e7b;
+  background: rgba(107, 110, 123, 0.15);
+}
+
+/* Buttons */
+.mygames-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 150ms ease;
+  border: none;
+}
+
+.mygames-btn--create {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 16px rgba(34, 197, 94, 0.25);
+}
+
+.mygames-btn--create:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(34, 197, 94, 0.35);
+}
+
+/* Cancel Button */
+.mygames-cancel-btn {
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-weight: 500;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 150ms ease;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.1);
+  color: #f87171;
+}
+
+.mygames-cancel-btn:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.5);
+}
+
+.mygames-cancel-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 400px) {
+  .mygames-header__title {
+    font-size: 24px;
+  }
+
+  .mygames-game {
+    padding: 12px 14px;
+  }
+
+  .mygames-game--spectate .mygames-game__players {
+    display: none;
+  }
+
+  .mygames-game--spectate .mygames-watch {
+    display: none;
+  }
+
+  .mygames-game--spectate .mygames-game__matchup {
+    font-size: 13px;
+  }
+
+  .mygames-game__opponent,
+  .mygames-game__matchup {
+    font-size: 13px;
+  }
+}
