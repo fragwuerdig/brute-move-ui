@@ -155,8 +155,17 @@ export interface JoinableGame {
   contract?: string,
 }
 
+export interface PgnOptions {
+  white?: string;  // White player name or address
+  black?: string;  // Black player name or address
+  event?: string;
+  site?: string;
+  date?: string;
+  result?: string;
+}
+
 // Convert UCI move history to PGN format
-export function uciToPgn(uciMoves: string[]): string {
+export function uciToPgn(uciMoves: string[], options?: PgnOptions): string {
   const chess = new Chess();
 
   for (const uci of uciMoves) {
@@ -167,5 +176,19 @@ export function uciToPgn(uciMoves: string[]): string {
     chess.move({ from, to, promotion });
   }
 
-  return chess.pgn();
+  // Build PGN headers
+  const headers: string[] = [];
+  headers.push(`[Event "${options?.event || 'Brute Move Game'}"]`);
+  headers.push(`[Site "${options?.site || 'https://brutemove.com'}"]`);
+  headers.push(`[Date "${options?.date || new Date().toISOString().split('T')[0].replace(/-/g, '.')}"]`);
+  headers.push(`[White "${options?.white || '?'}"]`);
+  headers.push(`[Black "${options?.black || '?'}"]`);
+  headers.push(`[Result "${options?.result || '*'}"]`);
+
+  // Get move text from chess.js
+  const moveText = chess.pgn({ maxWidth: 80 });
+  // chess.pgn() may include headers, so extract just the moves
+  const movesOnly = moveText.replace(/\[[^\]]*\]\s*/g, '').trim();
+
+  return headers.join('\n') + '\n\n' + movesOnly;
 }
