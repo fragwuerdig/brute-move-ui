@@ -6,6 +6,7 @@ import { useChessGame } from './hooks/useChessGame';
 import { ChessBoard } from './components/ChessBoard';
 import TurnIndicator from './TurnIndicator';
 import { ActionCard } from './ActionCard';
+import { uciToPgn } from './Common';
 import './Game.css';
 
 interface GameProps {
@@ -73,6 +74,17 @@ function Game({ gameAddress, variant }: GameProps) {
         }).catch((err) => {
             console.error('Failed to copy game link:', err);
             alert('Failed to copy game link.');
+        });
+    };
+
+    // Copy PGN to clipboard
+    const handleCopyPgn = () => {
+        const pgn = uciToPgn(onChain.history);
+        navigator.clipboard.writeText(pgn).then(() => {
+            alert('PGN copied to clipboard!');
+        }).catch((err) => {
+            console.error('Failed to copy PGN:', err);
+            alert('Failed to copy PGN.');
         });
     };
 
@@ -200,6 +212,7 @@ function Game({ gameAddress, variant }: GameProps) {
                     onShareClicked={handleShare}
                     onSettleClicked={handleClaimTimeout}
                     onExploreClicked={enterExploration}
+                    onCopyPgnClicked={handleCopyPgn}
                     showSettle={showSettle}
                     showClaimReward={showClaimReward}
                     canClaimReward={canClaimReward}

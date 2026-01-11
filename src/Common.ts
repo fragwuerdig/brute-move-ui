@@ -1,4 +1,5 @@
 import type { ChainInfo } from "@goblinhunt/cosmes/wallet";
+import { Chess } from 'chess.js';
 
 const REBEL_FACTORY = 'terra1epal6ev4pas762cun685kh36qdtd9u9um0yd3u0r22x39u43dhessteue6';
 const REBEL_LEADERBOARD = 'terra1lshuhtqfh25zlalgm9zy529vvpdljp9kdmzsx6t9wn64766aqq3s5ttfyh';
@@ -152,4 +153,19 @@ export interface JoinableGame {
   bet: number,
   fee: number,
   contract?: string,
+}
+
+// Convert UCI move history to PGN format
+export function uciToPgn(uciMoves: string[]): string {
+  const chess = new Chess();
+
+  for (const uci of uciMoves) {
+    const from = uci.slice(0, 2);
+    const to = uci.slice(2, 4);
+    const promotion = uci.length > 4 ? uci[4] : undefined;
+
+    chess.move({ from, to, promotion });
+  }
+
+  return chess.pgn();
 }
