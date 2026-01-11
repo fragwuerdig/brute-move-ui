@@ -144,6 +144,156 @@
   color: #6b6e7b;
 }
 
+/* Recipient Input */
+.recipient-input-wrapper {
+  position: relative;
+}
+
+.recipient-input {
+  width: 100%;
+  padding: 14px 16px;
+  padding-right: 40px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  color: #ffffff;
+  outline: none;
+  transition: all 150ms ease;
+  box-sizing: border-box;
+}
+
+.recipient-input::placeholder {
+  color: #6b6e7b;
+}
+
+.recipient-input:focus {
+  border-color: rgba(247, 179, 43, 0.5);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.recipient-clear {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 50%;
+  color: #a0a3b1;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.recipient-clear:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+}
+
+.recipient-searching {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6b6e7b;
+  font-size: 14px;
+}
+
+.recipient-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  background: #1e1f26;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  overflow: hidden;
+  z-index: 100;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.recipient-dropdown__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background 150ms ease;
+  text-align: left;
+}
+
+.recipient-dropdown__item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.recipient-dropdown__item:not(:last-child) {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.recipient-dropdown__avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.recipient-dropdown__avatar--empty {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+}
+
+.recipient-dropdown__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.recipient-dropdown__name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.recipient-dropdown__address {
+  font-size: 12px;
+  color: #6b6e7b;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.recipient-resolved {
+  padding: 10px 14px;
+  background: rgba(247, 179, 43, 0.08);
+  border: 1px solid rgba(247, 179, 43, 0.2);
+  border-radius: 8px;
+  font-size: 13px;
+  color: #a0a3b1;
+}
+
+.recipient-resolved strong {
+  color: #f7b32b;
+  font-weight: 600;
+}
+
+.create-section__optional {
+  font-weight: 400;
+  color: #6b6e7b;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
 /* Fee Info */
 .fee-info {
   display: flex;

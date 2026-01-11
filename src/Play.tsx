@@ -43,8 +43,11 @@ function Play() {
                 // Filter out:
                 // - games created by the current user
                 // - games that already have a contract assigned (already joined)
+                // - games with a recipient (directed challenges) unless we are the recipient
                 const availableGames = data.filter(game =>
-                    game.opponent !== connectedAddr && !game.contract
+                    game.opponent !== connectedAddr &&
+                    !game.contract &&
+                    (!game.recipient || game.recipient === connectedAddr)
                 );
                 setGames(availableGames);
             })

@@ -1,4 +1,4 @@
-import { addressEllipsis } from './Common';
+import { AddressDisplay } from './components/AddressDisplay';
 import './Leaderboard.css';
 
 interface LeaderboardEntry {
@@ -42,7 +42,7 @@ function Leaderboard({ entries, currentUser }: LeaderboardProps) {
                                 {isCurrentUser ? (
                                     <span className="leaderboard__you">You</span>
                                 ) : (
-                                    addressEllipsis(entry.address)
+                                    <AddressDisplay address={entry.address} />
                                 )}
                             </span>
                             <span className="leaderboard__cell leaderboard__cell--elo">

@@ -149,6 +149,23 @@
   margin: 0;
 }
 
+/* Recipient Info */
+.join-recipient-info {
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  text-align: center;
+}
+
+.join-recipient-info__label {
+  font-size: 12px;
+  color: #6b6e7b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 8px;
+}
+
 /* Fee Info */
 .join-fee-info {
   display: flex;

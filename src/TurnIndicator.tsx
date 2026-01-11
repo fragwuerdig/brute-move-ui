@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { GlassCard } from './GlassCard';
+import { AddressDisplay } from './components/AddressDisplay';
 import './TurnIndicator.css';
-import { addressEllipsis } from './Common';
 
 interface TurnIndicatorProps {
     players: string[];
@@ -74,10 +74,10 @@ const TurnIndicator: React.FC<TurnIndicatorProps> = ({
         };
     };
 
-    const getPlayerName = (index: number) => {
+    const getPlayerName = (index: number): React.ReactNode => {
         if (players.length <= index) return '???';
         if (players[index] === player) return 'You';
-        return addressEllipsis(players[index]);
+        return <AddressDisplay address={players[index]} />;
     };
 
     const isYou = (index: number) => players.length > index && players[index] === player;

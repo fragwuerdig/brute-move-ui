@@ -3,10 +3,12 @@ import type { ChainInfo } from "@goblinhunt/cosmes/wallet";
 const REBEL_FACTORY = 'terra1epal6ev4pas762cun685kh36qdtd9u9um0yd3u0r22x39u43dhessteue6';
 const REBEL_LEADERBOARD = 'terra1lshuhtqfh25zlalgm9zy529vvpdljp9kdmzsx6t9wn64766aqq3s5ttfyh';
 const REBEL_GAMEDB = 'terra183e9ul80dss0q708vwzjr364sm39elcuuyduld7fnry8t8n4vr9sr7x87m';
+const REBEL_NAMESERVICE = 'terra1c3ws7g7uw3njju7jyj04qq80zdw4zzdu0rclmuce7feg37pnzhsqcfphl6';
 
 const COLUMBUS_FACTORY = 'terra1y9xqqe7tfekmjvumt5d5guapvrged0dq0e0v9z7afm80z4wpkujqszy3cw';
 const COLUMBUS_LEADERBOARD = 'terra1ej2fmakaq24qxh3fttxn3uma9l3j0y9elyp85ecft2rktpejvtgsyau2mj';
 const COLUMBUS_GAMEDB = 'terra1tuae4mshuu3fna25j25k4anyv9dz7qcyqntlmvd9ewprztq5m0hsd6erl9';
+const COLUMBUS_NAMESERVICE = ''; // TODO: Add deployed address
 
 export function addressEllipsis(address: string): string {
   const parts = address.split('1');
@@ -88,6 +90,19 @@ export function getGameDbAddr(chain: ChainInfo<string>) {
 
 }
 
+export function getNameServiceAddr(chain: ChainInfo<string>) {
+
+  if ( chain.chainId === 'rebel-2' ) {
+    return REBEL_NAMESERVICE;
+  }
+  else if ( chain.chainId === 'columbus-5') {
+    return COLUMBUS_NAMESERVICE;
+  }
+
+  throw new Error
+
+}
+
 export function getRpcUrl(chain: ChainInfo<string>) {
 
   if ( chain.chainId === 'rebel-2' ) {
@@ -132,6 +147,7 @@ export interface JoinableGame {
   id: string;
   opponent_color: "Black" | "White" | null,
   opponent: string,
+  recipient: string | null,
   create_time: number,
   bet: number,
   fee: number,

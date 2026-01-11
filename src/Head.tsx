@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useWallet } from "./WalletProvider";
-import { addressEllipsis } from "./Common";
+import { AddressDisplay } from "./components/AddressDisplay";
 import { config } from "./config";
 import HeaderMenu from "./HeaderMenu";
 import Footer from "./Footer";
@@ -50,7 +50,7 @@ function Head({ children }: { children?: React.ReactNode }) {
                                     <BellIcon />
                                 </a>
                                 <button className="header-wallet" onClick={disconnect}>
-                                    <span className="header-wallet__address">{addressEllipsis(connectedAddr)}</span>
+                                    <span className="header-wallet__address"><AddressDisplay address={connectedAddr} /></span>
                                     <DisconnectIcon />
                                 </button>
                             </>
