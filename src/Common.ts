@@ -8,7 +8,7 @@ const REBEL_NAMESERVICE = 'terra1c3ws7g7uw3njju7jyj04qq80zdw4zzdu0rclmuce7feg37p
 const COLUMBUS_FACTORY = 'terra1y9xqqe7tfekmjvumt5d5guapvrged0dq0e0v9z7afm80z4wpkujqszy3cw';
 const COLUMBUS_LEADERBOARD = 'terra1ej2fmakaq24qxh3fttxn3uma9l3j0y9elyp85ecft2rktpejvtgsyau2mj';
 const COLUMBUS_GAMEDB = 'terra1tuae4mshuu3fna25j25k4anyv9dz7qcyqntlmvd9ewprztq5m0hsd6erl9';
-const COLUMBUS_NAMESERVICE = ''; // TODO: Add deployed address
+const COLUMBUS_NAMESERVICE = 'terra1xttfedej46ajg63ruvgfx2trpqxpq542tzpedmc5kauv87kds80sy68qpk';
 
 export function addressEllipsis(address: string): string {
   const parts = address.split('1');
