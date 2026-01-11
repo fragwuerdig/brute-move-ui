@@ -188,21 +188,21 @@ export function ChessBoard({
         effectiveAllowedColor === currentTurn
     );
 
-    // Board width observer
+    // Board width observer - calculate board size from frame content
     useEffect(() => {
         const updateWidth = () => {
             const frame = frameRef.current;
-            if (frame) {
-                const style = getComputedStyle(frame);
-                const paddingLeft = parseFloat(style.paddingLeft);
-                const paddingRight = parseFloat(style.paddingRight);
-                const borderLeft = parseFloat(style.borderLeftWidth);
-                const borderRight = parseFloat(style.borderRightWidth);
-                const contentWidth = frame.offsetWidth - paddingLeft - paddingRight - borderLeft - borderRight;
+            if (!frame) return;
 
-                if (contentWidth > 0 && contentWidth !== boardWidth) {
-                    setBoardWidth(contentWidth);
-                }
+            const style = getComputedStyle(frame);
+            const paddingLeft = parseFloat(style.paddingLeft);
+            const paddingRight = parseFloat(style.paddingRight);
+            const borderLeft = parseFloat(style.borderLeftWidth);
+            const borderRight = parseFloat(style.borderRightWidth);
+
+            const contentWidth = frame.offsetWidth - paddingLeft - paddingRight - borderLeft - borderRight;
+            if (contentWidth > 0) {
+                setBoardWidth(contentWidth);
             }
         };
 
@@ -210,10 +210,10 @@ export function ChessBoard({
         if (frame) {
             const resizeObserver = new ResizeObserver(updateWidth);
             resizeObserver.observe(frame);
-            updateWidth();
+            requestAnimationFrame(updateWidth);
             return () => resizeObserver.disconnect();
         }
-    }, [boardWidth]);
+    }, []);
 
     // Clear selection when FEN changes
     useEffect(() => {
@@ -335,7 +335,7 @@ export function ChessBoard({
 
     return (
         <div className="board-container">
-            {/* Chess board */}
+            {/* Chess board frame */}
             <div className={frameClass} ref={frameRef}>
                 {boardWidth && (
                     <Chessboard

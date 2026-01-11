@@ -3,6 +3,7 @@ import type { Square } from 'react-chessboard/dist/chessboard/types';
 import { useWallet } from './WalletProvider';
 import { useOnChainGame } from './hooks/useOnChainGame';
 import { useChessGame } from './hooks/useChessGame';
+import { useStockfish } from './hooks/useStockfish';
 import { useNameService } from './hooks';
 import { ChessBoard } from './components/ChessBoard';
 import TurnIndicator from './TurnIndicator';
@@ -18,6 +19,7 @@ interface GameProps {
 function Game({ gameAddress, variant }: GameProps) {
     const { connectedAddr } = useWallet();
     const [mode, setMode] = useState<'live' | 'exploration'>('live');
+    const [engineEnabled, setEngineEnabled] = useState(false);
     const [offerDraw, setOfferDraw] = useState(false);
     const [drawDismissed, setDrawDismissed] = useState(false);
     const [playerNames, setPlayerNames] = useState<{ white: string | null; black: string | null }>({ white: null, black: null });
@@ -50,6 +52,21 @@ function Game({ gameAddress, variant }: GameProps) {
         initialFen: onChain.fen,
     });
 
+    // Stockfish engine (only active in exploration mode when enabled)
+    const isExploration = mode === 'exploration';
+    const engine = useStockfish({
+        enabled: engineEnabled && isExploration,
+        depth: 18,
+    });
+
+    // Re-analyze when exploration position changes
+    useEffect(() => {
+        if (engineEnabled && isExploration) {
+            engine.analyze(localGame.fen);
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [localGame.fen, engineEnabled, isExploration]);
+
     // Handle live move
     const handleLiveMove = (from: Square, to: Square, promotion?: string): boolean => {
         if (onChain.isViewingHistory) {
@@ -74,9 +91,10 @@ function Game({ gameAddress, variant }: GameProps) {
         return localGame.move(from, to, promotion);
     };
 
-    // Enter exploration mode
+    // Enter exploration mode with full game history
     const enterExploration = () => {
-        localGame.setPosition(onChain.fen);
+        // Load the complete game history so user can navigate through all positions
+        localGame.loadHistory(onChain.historyFens, onChain.history, onChain.historyIndex);
         setMode('exploration');
     };
 
@@ -179,8 +197,6 @@ function Game({ gameAddress, variant }: GameProps) {
         return <div className="game-container" />;
     }
 
-    const isExploration = mode === 'exploration';
-
     return (
         <div className="game-container">
             {/* Mobile Turn Indicator - above board */}
@@ -219,13 +235,13 @@ function Game({ gameAddress, variant }: GameProps) {
                     onExit={exitExploration}
                     canUndo={localGame.canUndo}
                     canRedo={localGame.canRedo}
-                    // Live history navigation
-                    historyIndex={isExploration ? undefined : onChain.historyIndex}
-                    historyLength={isExploration ? undefined : onChain.historyFens.length}
-                    onHistoryBack={onChain.goBack}
-                    onHistoryForward={onChain.goForward}
-                    onHistoryStart={onChain.goToStart}
-                    onHistoryEnd={onChain.goToLatest}
+                    // History navigation (works in both modes)
+                    historyIndex={isExploration ? localGame.historyIndex : onChain.historyIndex}
+                    historyLength={isExploration ? localGame.history.length : onChain.historyFens.length}
+                    onHistoryBack={isExploration ? localGame.undo : onChain.goBack}
+                    onHistoryForward={isExploration ? localGame.redo : onChain.goForward}
+                    onHistoryStart={isExploration ? localGame.reset : onChain.goToStart}
+                    onHistoryEnd={isExploration ? () => localGame.goToMove(localGame.history.length - 1) : onChain.goToLatest}
                 />
             </div>
 
@@ -247,6 +263,41 @@ function Game({ gameAddress, variant }: GameProps) {
 
                 {/* Move history - content will be added later */}
                 <div className="game-move-history" />
+
+                {/* Engine Panel (exploration mode only) */}
+                {isExploration && (
+                    <div className="game-engine-panel">
+                        <button
+                            className={`game-engine-toggle ${engineEnabled ? 'game-engine-toggle--active' : ''}`}
+                            onClick={() => setEngineEnabled(!engineEnabled)}
+                        >
+                            {engineEnabled ? (engine.isReady ? 'Engine On' : 'Loading...') : 'Enable Engine'}
+                        </button>
+
+                        {engineEnabled && engine.currentEval && (
+                            <div className="game-engine-info">
+                                <div className="game-engine-info__eval">
+                                    {engine.currentEval.mate !== null
+                                        ? `M${Math.abs(engine.currentEval.mate)}`
+                                        : `${(engine.currentEval.score / 100).toFixed(1)}`
+                                    }
+                                </div>
+                                <div className="game-engine-info__depth">
+                                    Depth: {engine.currentEval.depth}
+                                </div>
+                                {engine.bestLine.length > 0 && (
+                                    <div className="game-engine-info__line">
+                                        {engine.bestLine.slice(0, 5).join(' ')}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {engine.error && (
+                            <div className="game-engine-error">{engine.error}</div>
+                        )}
+                    </div>
+                )}
 
                 <ActionCard
                     variant="compact"
