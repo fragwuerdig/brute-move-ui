@@ -1,4 +1,5 @@
 import type { ChainInfo } from "@goblinhunt/cosmes/wallet";
+import { Chess } from 'chess.js';
 
 const REBEL_FACTORY = 'terra1epal6ev4pas762cun685kh36qdtd9u9um0yd3u0r22x39u43dhessteue6';
 const REBEL_LEADERBOARD = 'terra1lshuhtqfh25zlalgm9zy529vvpdljp9kdmzsx6t9wn64766aqq3s5ttfyh';
@@ -152,4 +153,42 @@ export interface JoinableGame {
   bet: number,
   fee: number,
   contract?: string,
+}
+
+export interface PgnOptions {
+  white?: string;  // White player name or address
+  black?: string;  // Black player name or address
+  event?: string;
+  site?: string;
+  date?: string;
+  result?: string;
+}
+
+// Convert UCI move history to PGN format
+export function uciToPgn(uciMoves: string[], options?: PgnOptions): string {
+  const chess = new Chess();
+
+  for (const uci of uciMoves) {
+    const from = uci.slice(0, 2);
+    const to = uci.slice(2, 4);
+    const promotion = uci.length > 4 ? uci[4] : undefined;
+
+    chess.move({ from, to, promotion });
+  }
+
+  // Build PGN headers
+  const headers: string[] = [];
+  headers.push(`[Event "${options?.event || 'Brute Move Game'}"]`);
+  headers.push(`[Site "${options?.site || 'https://brutemove.com'}"]`);
+  headers.push(`[Date "${options?.date || new Date().toISOString().split('T')[0].replace(/-/g, '.')}"]`);
+  headers.push(`[White "${options?.white || '?'}"]`);
+  headers.push(`[Black "${options?.black || '?'}"]`);
+  headers.push(`[Result "${options?.result || '*'}"]`);
+
+  // Get move text from chess.js
+  const moveText = chess.pgn({ maxWidth: 80 });
+  // chess.pgn() may include headers, so extract just the moves
+  const movesOnly = moveText.replace(/\[[^\]]*\]\s*/g, '').trim();
+
+  return headers.join('\n') + '\n\n' + movesOnly;
 }

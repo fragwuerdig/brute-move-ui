@@ -1,11 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { Square } from 'react-chessboard/dist/chessboard/types';
 import { useWallet } from './WalletProvider';
 import { useOnChainGame } from './hooks/useOnChainGame';
 import { useChessGame } from './hooks/useChessGame';
+import { useNameService } from './hooks';
 import { ChessBoard } from './components/ChessBoard';
 import TurnIndicator from './TurnIndicator';
 import { ActionCard } from './ActionCard';
+import { uciToPgn, addressEllipsis } from './Common';
 import './Game.css';
 
 interface GameProps {
@@ -18,11 +20,30 @@ function Game({ gameAddress, variant }: GameProps) {
     const [mode, setMode] = useState<'live' | 'exploration'>('live');
     const [offerDraw, setOfferDraw] = useState(false);
     const [drawDismissed, setDrawDismissed] = useState(false);
+    const [playerNames, setPlayerNames] = useState<{ white: string | null; black: string | null }>({ white: null, black: null });
+
+    // Name service for resolving player addresses
+    const { resolveAddresses } = useNameService();
 
     // On-chain game state
     const onChain = useOnChainGame({
         gameAddress: gameAddress || '',
     });
+
+    // Resolve player names when game info is loaded
+    useEffect(() => {
+        if (!onChain.gameInfo?.players || onChain.gameInfo.players.length < 2) return;
+
+        const [whiteAddr, blackAddr] = onChain.gameInfo.players;
+        resolveAddresses([whiteAddr, blackAddr]).then((profiles) => {
+            const whiteProfile = profiles.get(whiteAddr);
+            const blackProfile = profiles.get(blackAddr);
+            setPlayerNames({
+                white: whiteProfile?.display_name || null,
+                black: blackProfile?.display_name || null,
+            });
+        });
+    }, [onChain.gameInfo?.players, resolveAddresses]);
 
     // Local game for exploration mode
     const localGame = useChessGame({
@@ -73,6 +94,41 @@ function Game({ gameAddress, variant }: GameProps) {
         }).catch((err) => {
             console.error('Failed to copy game link:', err);
             alert('Failed to copy game link.');
+        });
+    };
+
+    // Copy PGN to clipboard
+    const handleCopyPgn = () => {
+        const players = onChain.gameInfo?.players || [];
+        const whiteAddr = players[0] || '?';
+        const blackAddr = players[1] || '?';
+
+        // Use display name if available, otherwise ellipsized address
+        const whiteName = playerNames.white || addressEllipsis(whiteAddr);
+        const blackName = playerNames.black || addressEllipsis(blackAddr);
+
+        // Determine result
+        let result = '*';
+        if (onChain.gameInfo?.is_finished) {
+            if (!onChain.gameInfo.winner) {
+                result = '1/2-1/2';
+            } else if (onChain.gameInfo.winner === whiteAddr) {
+                result = '1-0';
+            } else {
+                result = '0-1';
+            }
+        }
+
+        const pgn = uciToPgn(onChain.history, {
+            white: whiteName,
+            black: blackName,
+            result,
+        });
+        navigator.clipboard.writeText(pgn).then(() => {
+            alert('PGN copied to clipboard!');
+        }).catch((err) => {
+            console.error('Failed to copy PGN:', err);
+            alert('Failed to copy PGN.');
         });
     };
 
@@ -200,6 +256,7 @@ function Game({ gameAddress, variant }: GameProps) {
                     onShareClicked={handleShare}
                     onSettleClicked={handleClaimTimeout}
                     onExploreClicked={enterExploration}
+                    onCopyPgnClicked={handleCopyPgn}
                     showSettle={showSettle}
                     showClaimReward={showClaimReward}
                     canClaimReward={canClaimReward}
