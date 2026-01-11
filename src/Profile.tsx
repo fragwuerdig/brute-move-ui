@@ -31,7 +31,7 @@ function Profile() {
     const [checkingName, setCheckingName] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-    const nameCheckTimeout = useRef<NodeJS.Timeout | null>(null);
+    const nameCheckTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Load profile data into form
