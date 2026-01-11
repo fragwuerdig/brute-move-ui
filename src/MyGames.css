@@ -135,6 +135,15 @@
   border-left: 3px solid #8b5cf6;
 }
 
+.mygames-game--incoming {
+  border-left: 3px solid #f7b32b;
+  background: rgba(247, 179, 43, 0.05);
+}
+
+.mygames-game--incoming:hover {
+  background: rgba(247, 179, 43, 0.1);
+}
+
 .mygames-game__bet {
   font-size: 14px;
   font-weight: 600;
@@ -230,6 +239,20 @@
 
 .mygames-game:hover .mygames-watch {
   background: rgba(247, 179, 43, 0.2);
+}
+
+.mygames-join-btn {
+  font-size: 12px;
+  font-weight: 600;
+  color: #0d0d0f;
+  padding: 6px 14px;
+  background: linear-gradient(135deg, #f7b32b 0%, #d4941a 100%);
+  border-radius: 6px;
+  transition: all 150ms ease;
+}
+
+.mygames-game:hover .mygames-join-btn {
+  transform: scale(1.05);
 }
 
 /* Result Badge */

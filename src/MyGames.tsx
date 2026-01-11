@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { fetchContractStateSmart, getGameDbAddr, getFactoryAddr, addressEllipsis, type JoinableGame } from './Common';
+import { fetchContractStateSmart, getGameDbAddr, getFactoryAddr, type JoinableGame } from './Common';
 import { useWallet } from './WalletProvider';
 import { GlassCard } from './GlassCard';
+import { AddressDisplay } from './components/AddressDisplay';
 import { MsgExecuteContract } from '@goblinhunt/cosmes/client';
 import type { UnsignedTx } from '@goblinhunt/cosmes/wallet';
 import './MyGames.css';
@@ -27,6 +28,8 @@ function MyGames() {
     const [myFinishedGames, setMyFinishedGames] = useState<GameRecord[]>([]);
     const [otherOngoingGames, setOtherOngoingGames] = useState<GameRecord[]>([]);
     const [myChallenges, setMyChallenges] = useState<JoinableGame[]>([]);
+    const [mySentChallenges, setMySentChallenges] = useState<JoinableGame[]>([]);
+    const [incomingChallenges, setIncomingChallenges] = useState<JoinableGame[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [cancellingId, setCancellingId] = useState<string | null>(null);
@@ -70,13 +73,38 @@ function MyGames() {
                     { joinable_games: { limit: 50, period: 60 * 60 * 24 * 30 } },
                     chain
                 );
-                const myOpenChallenges = (Array.isArray(allJoinable) ? allJoinable : []).filter(
+                const joinableGames = Array.isArray(allJoinable) ? allJoinable : [];
+
+                // My open challenges (games I created)
+                const myOpenChallenges = joinableGames.filter(
                     (game: JoinableGame) => game.opponent === connectedAddr && !game.contract
                 );
+
+                // Fetch incoming challenges (directed challenges for this user)
+                const incomingChallengesData = await fetchContractStateSmart(
+                    factoryAddr,
+                    { challenges_for: { recipient: connectedAddr } },
+                    chain
+                );
+                const myIncomingChallenges = Array.isArray(incomingChallengesData)
+                    ? incomingChallengesData.filter((g: JoinableGame) => !g.contract)
+                    : [];
+
+                // Fetch sent challenges (directed challenges created by this user)
+                const sentChallengesData = await fetchContractStateSmart(
+                    factoryAddr,
+                    { challenges_by: { creator: connectedAddr } },
+                    chain
+                );
+                const mySentDirectedChallenges = Array.isArray(sentChallengesData)
+                    ? sentChallengesData.filter((g: JoinableGame) => !g.contract)
+                    : [];
 
                 setMyOngoingGames(Array.isArray(myOngoing) ? myOngoing : []);
                 setMyFinishedGames(Array.isArray(myFinished) ? myFinished : []);
                 setMyChallenges(myOpenChallenges);
+                setMySentChallenges(mySentDirectedChallenges);
+                setIncomingChallenges(myIncomingChallenges);
 
                 // Filter out user's own games from "other" list
                 const filteredOther = (Array.isArray(otherGames) ? otherGames : []).filter(
@@ -140,11 +168,11 @@ function MyGames() {
         return `${Math.floor(diff / 86400)}d ago`;
     };
 
-    const getOpponent = (game: GameRecord): string => {
+    const getOpponentAddress = (game: GameRecord): string => {
         if (game.player_white === connectedAddr) {
-            return addressEllipsis(game.player_black);
+            return game.player_black;
         }
-        return addressEllipsis(game.player_white);
+        return game.player_white;
     };
 
     const getMyColor = (game: GameRecord): 'white' | 'black' => {
@@ -188,8 +216,40 @@ function MyGames() {
 
             {!loading && !error && (
                 <>
+                    {/* Incoming Challenges */}
+                    {incomingChallenges.length > 0 && (
+                        <GlassCard accent>
+                            <div className="mygames-section">
+                                <h2 className="mygames-section__title">
+                                    Incoming Challenges
+                                </h2>
+                                <p className="mygames-section__desc">Players who challenged you</p>
+                                <div className="mygames-list">
+                                    {incomingChallenges.map((challenge) => (
+                                        <div
+                                            key={challenge.id}
+                                            className="mygames-game mygames-game--incoming"
+                                            onClick={() => navigate(`/join/${challenge.id}`)}
+                                        >
+                                            <div className="mygames-game__color">
+                                                <span className={`mygames-dot mygames-dot--${challenge.opponent_color === 'White' ? 'black' : challenge.opponent_color === 'Black' ? 'white' : 'white'}`} />
+                                            </div>
+                                            <div className="mygames-game__info">
+                                                <span className="mygames-game__opponent">from <AddressDisplay address={challenge.opponent} /></span>
+                                                <span className="mygames-game__bet">{formatBet(challenge.bet)} LUNC</span>
+                                            </div>
+                                            <div className="mygames-game__action">
+                                                <span className="mygames-join-btn">Join</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </GlassCard>
+                    )}
+
                     {/* Your Open Challenges */}
-                    {myChallenges.length > 0 && (
+                    {(myChallenges.length > 0 || mySentChallenges.length > 0) && (
                         <GlassCard accent>
                             <div className="mygames-section">
                                 <h2 className="mygames-section__title">
@@ -197,7 +257,7 @@ function MyGames() {
                                 </h2>
                                 <p className="mygames-section__desc">Waiting for an opponent to join</p>
                                 <div className="mygames-list">
-                                    {myChallenges.map((challenge) => (
+                                    {[...myChallenges, ...mySentChallenges].map((challenge) => (
                                         <div
                                             key={challenge.id}
                                             className="mygames-game mygames-game--challenge"
@@ -207,8 +267,12 @@ function MyGames() {
                                                 <span className={`mygames-dot mygames-dot--${challenge.opponent_color?.toLowerCase() || 'white'}`} />
                                             </div>
                                             <div className="mygames-game__info">
+                                                {challenge.recipient ? (
+                                                    <span className="mygames-game__opponent">to <AddressDisplay address={challenge.recipient} /></span>
+                                                ) : (
+                                                    <span className="mygames-game__opponent">Open challenge</span>
+                                                )}
                                                 <span className="mygames-game__bet">{formatBet(challenge.bet)} LUNC</span>
-                                                <span className="mygames-game__time">{formatTime(challenge.create_time)}</span>
                                             </div>
                                             <button
                                                 className="mygames-cancel-btn"
@@ -252,7 +316,7 @@ function MyGames() {
                                                 <span className={`mygames-dot mygames-dot--${getMyColor(game)}`} />
                                             </div>
                                             <div className="mygames-game__info">
-                                                <span className="mygames-game__opponent">vs {getOpponent(game)}</span>
+                                                <span className="mygames-game__opponent">vs <AddressDisplay address={getOpponentAddress(game)} /></span>
                                                 <span className="mygames-game__time">{formatTime(game.creation_time)}</span>
                                             </div>
                                             <div className="mygames-game__action">
@@ -287,7 +351,7 @@ function MyGames() {
                                                 <span className={`mygames-dot mygames-dot--${getMyColor(game)}`} />
                                             </div>
                                             <div className="mygames-game__info">
-                                                <span className="mygames-game__opponent">vs {getOpponent(game)}</span>
+                                                <span className="mygames-game__opponent">vs <AddressDisplay address={getOpponentAddress(game)} /></span>
                                                 <span className="mygames-game__time">{formatTime(game.creation_time)}</span>
                                             </div>
                                             <div className={`mygames-result ${getResultClass(game)}`}>
@@ -326,7 +390,7 @@ function MyGames() {
                                             </div>
                                             <div className="mygames-game__info">
                                                 <span className="mygames-game__matchup">
-                                                    {addressEllipsis(game.player_white)} vs {addressEllipsis(game.player_black)}
+                                                    <AddressDisplay address={game.player_white} /> vs <AddressDisplay address={game.player_black} />
                                                 </span>
                                                 <span className="mygames-game__time">{formatTime(game.creation_time)}</span>
                                             </div>

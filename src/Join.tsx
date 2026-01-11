@@ -6,6 +6,7 @@ import { MsgExecuteContract } from '@goblinhunt/cosmes/client';
 import { useNavigate } from "react-router-dom";
 import { STORE_KEY_SAVED_GAMES, type SavedGame } from './Home';
 import { GlassCard } from './GlassCard';
+import { AddressDisplay } from './components/AddressDisplay';
 import './Join.css';
 
 type ColorChoice = 'White' | 'Black' | 'Random';
@@ -57,6 +58,10 @@ function Join({ game }: JoinProps) {
     if (!game || balance === null) return;
     if (game.opponent === connectedAddr) {
       setMessage("This is your own challenge. Wait for an opponent to join.");
+      return;
+    }
+    if (game.recipient && game.recipient !== connectedAddr) {
+      setMessage("This challenge is for a specific player. You cannot join.");
       return;
     }
     if (game.opponent_color === 'White' && color === 'White') {
@@ -167,6 +172,17 @@ function Join({ game }: JoinProps) {
           <p className="join-bet-display__label">Stake Amount</p>
           <p className="join-bet-display__value">{(game.bet / 1000000).toFixed(2)} LUNC</p>
         </div>
+
+        {/* Recipient Info */}
+        {game.recipient && (
+          <>
+            <div className="join-divider" />
+            <div className="join-recipient-info">
+              <p className="join-recipient-info__label">Challenge directed to</p>
+              <AddressDisplay address={game.recipient} clickable={false} />
+            </div>
+          </>
+        )}
 
         <div className="join-divider" />
 

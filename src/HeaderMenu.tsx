@@ -33,6 +33,7 @@ const ChevronIcon = ({ isOpen }: { isOpen: boolean }) => (
 const menuItems: MenuItem[] = [
     { label: 'Play', path: '/play' },
     { label: 'My Games', path: '/my-games' },
+    { label: 'Profile', path: '/profile' },
     { label: 'Leaderboard', path: '/leaderboard' },
 ];
 

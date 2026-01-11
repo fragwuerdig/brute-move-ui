@@ -8,6 +8,8 @@ import JoinRoute from "./JoinRoute";
 import LeaderboardPage from "./LeaderboardPage";
 import Play from "./Play";
 import MyGames from "./MyGames";
+import Profile from "./Profile";
+import ProfileView from "./ProfileView";
 import { GlassCard } from "./GlassCard";
 import './App.css';
 
@@ -35,6 +37,8 @@ function App() {
             <Route path="/leaderboard" element={<LeaderboardPage />} />
             <Route path="/play" element={<Play />} />
             <Route path="/my-games" element={<MyGames />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/profile/:address" element={<ProfileView />} />
           </Routes>
         ) : (
           <div className="connect-screen">

@@ -1,0 +1,24 @@
+.address-display {
+    font-family: monospace;
+    color: #9ca3af;
+}
+
+.address-display--named {
+    font-family: 'Inter', -apple-system, sans-serif;
+    color: #f7b32b;
+    font-weight: 500;
+}
+
+.address-display--loading {
+    opacity: 0.6;
+}
+
+.address-display--clickable {
+    cursor: pointer;
+    transition: opacity 150ms ease;
+}
+
+.address-display--clickable:hover {
+    opacity: 0.8;
+    text-decoration: underline;
+}
