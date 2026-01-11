@@ -242,6 +242,11 @@ function Game({ gameAddress, variant }: GameProps) {
                     onHistoryForward={isExploration ? localGame.redo : onChain.goForward}
                     onHistoryStart={isExploration ? localGame.reset : onChain.goToStart}
                     onHistoryEnd={isExploration ? () => localGame.goToMove(localGame.history.length - 1) : onChain.goToLatest}
+                    // Evaluation bar (exploration mode with engine enabled)
+                    evaluation={isExploration && engineEnabled && engine.currentEval ? {
+                        score: engine.currentEval.score,
+                        mate: engine.currentEval.mate
+                    } : undefined}
                 />
             </div>
 

@@ -2,6 +2,7 @@ import { Chessboard } from "react-chessboard";
 import type { CustomSquareStyles } from "react-chessboard/dist/chessboard/types";
 import { type PieceSymbol, type Square, Chess } from "chess.js";
 import { useState, useRef, useEffect, useMemo } from "react";
+import { EvaluationBar } from '../EvaluationBar';
 import './ChessBoard.css';
 
 export type BoardMode = 'live' | 'exploration' | 'analysis';
@@ -39,6 +40,9 @@ export interface ChessBoardProps {
     onHistoryForward?: () => void;
     onHistoryStart?: () => void;
     onHistoryEnd?: () => void;
+
+    // Evaluation bar
+    evaluation?: { score: number; mate: number | null };
 }
 
 // Icons
@@ -162,6 +166,7 @@ export function ChessBoard({
     onHistoryForward,
     onHistoryStart,
     onHistoryEnd,
+    evaluation,
 }: ChessBoardProps) {
     const [selected, setSelected] = useState<string | null>(null);
     const [target, setTarget] = useState<string | null>(null);
@@ -335,30 +340,42 @@ export function ChessBoard({
 
     return (
         <div className="board-container">
+
             {/* Chess board frame */}
             <div className={frameClass} ref={frameRef}>
+                {/* Evaluation bar on the left - same height as board */}
+                {evaluation && boardWidth && (
+                    <div style={{ height: boardWidth - 23, marginRight: 8 }}>
+                        <EvaluationBar
+                            value={evaluation.score}
+                            mate={evaluation.mate}
+                        />
+                    </div>
+                )}
                 {boardWidth && (
-                    <Chessboard
-                        position={fen || 'start'}
-                        arePiecesDraggable={false}
-                        boardOrientation={orientation}
-                        boardWidth={boardWidth}
-                        customBoardStyle={{
-                            borderRadius: '12px',
-                        }}
-                        customDarkSquareStyle={{
-                            backgroundColor: darkSquareColor
-                        }}
-                        customLightSquareStyle={{
-                            backgroundColor: lightSquareColor
-                        }}
-                        customSquareStyles={{
-                            ...parseIndicatorStyles(checkSquare, lastMove, mode),
-                            ...legalMoveStyles,
-                            ...(selected ? { [selected]: { backgroundColor: 'rgba(59, 130, 246, 0.5)' } } : {}),
-                        }}
-                        onSquareClick={onSquareClick}
-                    />
+                    <div style={{ marginLeft: 'auto' }}>
+                        <Chessboard
+                            position={fen || 'start'}
+                            arePiecesDraggable={false}
+                            boardOrientation={orientation}
+                            boardWidth={boardWidth - 23}
+                            customBoardStyle={{
+                                borderRadius: '12px',
+                            }}
+                            customDarkSquareStyle={{
+                                backgroundColor: darkSquareColor
+                            }}
+                            customLightSquareStyle={{
+                                backgroundColor: lightSquareColor
+                            }}
+                            customSquareStyles={{
+                                ...parseIndicatorStyles(checkSquare, lastMove, mode),
+                                ...legalMoveStyles,
+                                ...(selected ? { [selected]: { backgroundColor: 'rgba(59, 130, 246, 0.5)' } } : {}),
+                            }}
+                            onSquareClick={onSquareClick}
+                        />
+                    </div>
                 )}
             </div>
 
