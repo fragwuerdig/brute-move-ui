@@ -62,20 +62,21 @@ function Game({ gameAddress, variant }: GameProps) {
         initialFen: onChain.fen,
     });
 
-    // Stockfish engine (only active in exploration mode when enabled)
+    // Stockfish engine (only active in exploration mode when enabled, and only for finished games)
     const isExploration = mode === 'exploration';
+    const isGameFinished = onChain.gameInfo?.is_finished ?? false;
     const engine = useStockfish({
-        enabled: engineEnabled && isExploration,
+        enabled: engineEnabled && isExploration && isGameFinished,
         depth: 18,
     });
 
     // Re-analyze when exploration position changes
     useEffect(() => {
-        if (engineEnabled && isExploration) {
+        if (engineEnabled && isExploration && isGameFinished) {
             engine.analyze(localGame.fen);
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [localGame.fen, engineEnabled, isExploration]);
+    }, [localGame.fen, engineEnabled, isExploration, isGameFinished]);
 
     // Cache evaluations when engine finishes analyzing at good depth
     useEffect(() => {
@@ -319,8 +320,8 @@ function Game({ gameAddress, variant }: GameProps) {
                 {/* Move history - content will be added later */}
                 <div className="game-move-history" />
 
-                {/* Engine Panel (exploration mode only) */}
-                {isExploration && (
+                {/* Engine Panel (exploration mode only, and only for finished games) */}
+                {isExploration && onChain.gameInfo?.is_finished && (
                     <EnginePanel
                         enabled={engineEnabled}
                         isReady={engine.isReady}

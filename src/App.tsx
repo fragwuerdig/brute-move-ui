@@ -9,6 +9,7 @@ import Play from "./Play";
 import MyGames from "./MyGames";
 import Profile from "./Profile";
 import ProfileView from "./ProfileView";
+import FAQ from "./FAQ";
 import './App.css';
 
 function App() {
@@ -25,6 +26,7 @@ function App() {
           <Route path="/games" element={<MyGames />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/profile/:address" element={<ProfileView />} />
+          <Route path="/faq" element={<FAQ />} />
         </Routes>
       </Head>
     </>
