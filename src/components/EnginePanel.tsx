@@ -157,44 +157,47 @@ export function EnginePanel({
         {enabled ? (isReady ? 'Engine On' : 'Loading...') : 'Enable Engine'}
       </button>
 
-      {/* Move Quality Badge */}
-      {enabled && moveQualityInfo && (
-        <div className={`move-quality ${moveQualityInfo.className}`}>
-          <div className="move-quality__header">
-            <span className="move-quality__badge">{moveQualityInfo.label}</span>
-            <span className="move-quality__move">{moveQualityInfo.sanMove}</span>
-          </div>
-          {!moveQualityInfo.wasBest && moveQualityInfo.bestSan && (
-            <div className="move-quality__best">
-              Best was <strong>{moveQualityInfo.bestSan}</strong>
+      {/* Content container with fixed height */}
+      {enabled && (
+        <div className="engine-panel__content">
+          {/* Move Quality Badge */}
+          {moveQualityInfo && (
+            <div className={`move-quality ${moveQualityInfo.className}`}>
+              <div className="move-quality__header">
+                <span className="move-quality__badge">{moveQualityInfo.label}</span>
+                <span className="move-quality__move">{moveQualityInfo.sanMove}</span>
+              </div>
+              {!moveQualityInfo.wasBest && moveQualityInfo.bestSan && (
+                <div className="move-quality__best">
+                  Best was <strong>{moveQualityInfo.bestSan}</strong>
+                </div>
+              )}
             </div>
           )}
-        </div>
-      )}
 
-      {enabled && sanLines.length > 0 && (
-        <div className="engine-panel__lines">
-          <div className="engine-panel__header">
-            <span className="engine-panel__depth">Depth {depth}</span>
-            {isAnalyzing && <span className="engine-panel__analyzing" />}
-          </div>
+          {sanLines.length > 0 ? (
+            <div className="engine-panel__lines">
+              <div className="engine-panel__header">
+                <span className="engine-panel__depth">Depth {depth}</span>
+                {isAnalyzing && <span className="engine-panel__analyzing" />}
+              </div>
 
-          {sanLines.map((line, index) => (
-            <div key={index} className="engine-line">
-              <div className={`engine-line__eval ${getEvalClass(line.score, line.mate)}`}>
-                {formatEval(line.score, line.mate)}
-              </div>
-              <div className="engine-line__moves">
-                {line.formatted || line.pv.slice(0, 5).join(' ')}
-              </div>
+              {sanLines.map((line, index) => (
+                <div key={index} className="engine-line">
+                  <div className={`engine-line__eval ${getEvalClass(line.score, line.mate)}`}>
+                    {formatEval(line.score, line.mate)}
+                  </div>
+                  <div className="engine-line__moves">
+                    {line.formatted || line.pv.slice(0, 5).join(' ')}
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      )}
-
-      {enabled && sanLines.length === 0 && isReady && (
-        <div className="engine-panel__loading">
-          Analyzing...
+          ) : isReady ? (
+            <div className="engine-panel__loading">
+              Analyzing...
+            </div>
+          ) : null}
         </div>
       )}
 

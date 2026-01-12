@@ -10,6 +10,7 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  min-height: 280px;
 }
 
 /* Toggle Button */
@@ -42,11 +43,20 @@
   background: linear-gradient(135deg, rgba(76, 175, 80, 0.3) 0%, rgba(76, 175, 80, 0.15) 100%);
 }
 
+/* Content Container - fixed height to prevent layout shifts */
+.engine-panel__content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 180px;
+}
+
 /* Lines Container */
 .engine-panel__lines {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  flex: 1;
 }
 
 /* Header with depth */
