@@ -344,16 +344,26 @@ export function ChessBoard({
             {/* Chess board frame */}
             <div className={frameClass} ref={frameRef}>
                 {/* Evaluation bar on the left - same height as board */}
-                {evaluation && boardWidth && (
-                    <div style={{ height: boardWidth - 23, marginRight: 8 }}>
-                        <EvaluationBar
-                            value={evaluation.score}
-                            mate={evaluation.mate}
-                        />
+                {boardWidth && (
+                    <div
+                        className="board-frame__eval-wrapper"
+                        style={{
+                            height: boardWidth - 23,
+                            width: evaluation ? 16 : 0,
+                            marginRight: evaluation ? 8 : 0,
+                            opacity: evaluation ? 1 : 0,
+                        }}
+                    >
+                        {evaluation && (
+                            <EvaluationBar
+                                value={evaluation.score}
+                                mate={evaluation.mate}
+                            />
+                        )}
                     </div>
                 )}
                 {boardWidth && (
-                    <div style={{ marginLeft: 'auto' }}>
+                    <div>
                         <Chessboard
                             position={fen || 'start'}
                             arePiecesDraggable={false}

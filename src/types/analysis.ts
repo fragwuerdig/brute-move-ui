@@ -9,6 +9,15 @@ export interface EngineEvaluation {
   time: number;            // Time spent in ms
 }
 
+// A single engine line (for MultiPV)
+export interface EngineLine {
+  multipv: number;         // Line number (1 = best, 2 = second best, etc.)
+  depth: number;
+  score: number;           // In centipawns, normalized to white's perspective
+  mate: number | null;
+  pv: string[];            // Principal variation in UCI format
+}
+
 // Move quality classification
 export type MoveQuality =
   | 'brilliant'    // Better than engine's best move (rare)

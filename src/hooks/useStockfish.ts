@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import type { EngineEvaluation } from '../types/analysis';
+import type { EngineEvaluation, EngineLine } from '../types/analysis';
 
 export interface UseStockfishOptions {
   enabled?: boolean;       // Whether engine should be active
   depth?: number;          // Analysis depth (default: 18)
-  multiPv?: number;        // Number of lines to calculate (default: 1)
+  multiPv?: number;        // Number of lines to calculate (default: 3)
 }
 
 export interface UseStockfishReturn {
@@ -18,6 +18,9 @@ export interface UseStockfishReturn {
   bestMove: string | null;
   bestLine: string[];
 
+  // MultiPV lines (all top lines)
+  lines: EngineLine[];
+
   // Actions
   analyze: (fen: string) => void;
   stop: () => void;
@@ -29,11 +32,26 @@ function getSideToMove(fen: string): 'w' | 'b' {
   return (parts[1] === 'b' ? 'b' : 'w');
 }
 
-// Parse UCI info line into evaluation
-function parseInfoLine(line: string): Partial<EngineEvaluation> | null {
+// Parse UCI info line into evaluation with multipv support
+interface ParsedInfo {
+  multipv?: number;
+  depth?: number;
+  score?: number;
+  mate?: number | null;
+  pv?: string[];
+  nodes?: number;
+  nps?: number;
+  time?: number;
+}
+
+function parseInfoLine(line: string): ParsedInfo | null {
   if (!line.startsWith('info ')) return null;
 
-  const result: Partial<EngineEvaluation> = {};
+  const result: ParsedInfo = {};
+
+  // Parse multipv (line number)
+  const multipvMatch = line.match(/\bmultipv (\d+)/);
+  if (multipvMatch) result.multipv = parseInt(multipvMatch[1]);
 
   // Parse depth
   const depthMatch = line.match(/\bdepth (\d+)/);
@@ -81,18 +99,20 @@ function parseBestMove(line: string): string | null {
 }
 
 export function useStockfish(options: UseStockfishOptions = {}): UseStockfishReturn {
-  const { enabled = true, depth = 18, multiPv = 1 } = options;
+  const { enabled = true, depth = 18, multiPv = 3 } = options;
 
   const [isReady, setIsReady] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [currentEval, setCurrentEval] = useState<EngineEvaluation | null>(null);
   const [bestMove, setBestMove] = useState<string | null>(null);
   const [bestLine, setBestLine] = useState<string[]>([]);
+  const [lines, setLines] = useState<EngineLine[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   const workerRef = useRef<Worker | null>(null);
   const pendingFenRef = useRef<string | null>(null);
   const currentFenRef = useRef<string | null>(null);
+  const linesRef = useRef<Map<number, EngineLine>>(new Map());
 
   // Initialize worker
   useEffect(() => {
@@ -106,6 +126,8 @@ export function useStockfish(options: UseStockfishOptions = {}): UseStockfishRet
         setCurrentEval(null);
         setBestMove(null);
         setBestLine([]);
+        setLines([]);
+        linesRef.current.clear();
       }
       return;
     }
@@ -134,7 +156,8 @@ export function useStockfish(options: UseStockfishOptions = {}): UseStockfishRet
           if (pendingFenRef.current) {
             const fen = pendingFenRef.current;
             pendingFenRef.current = null;
-            currentFenRef.current = fen; // Store for score normalization
+            currentFenRef.current = fen;
+            linesRef.current.clear();
             worker.postMessage('ucinewgame');
             worker.postMessage(`position fen ${fen}`);
             worker.postMessage(`go depth ${depth}`);
@@ -142,22 +165,45 @@ export function useStockfish(options: UseStockfishOptions = {}): UseStockfishRet
           }
         } else if (line.startsWith('info ')) {
           const info = parseInfoLine(line);
-          if (info && info.depth !== undefined) {
+          if (info && info.depth !== undefined && info.pv && info.pv.length > 0) {
             // Stockfish returns score from side-to-move perspective
             // We normalize to white's perspective (positive = white advantage)
             const isBlackToMove = currentFenRef.current ? getSideToMove(currentFenRef.current) === 'b' : false;
             const scoreMultiplier = isBlackToMove ? -1 : 1;
 
-            setCurrentEval(prev => ({
-              depth: info.depth ?? prev?.depth ?? 0,
-              score: (info.score ?? prev?.score ?? 0) * scoreMultiplier,
-              mate: info.mate !== undefined ? (info.mate !== null ? info.mate * scoreMultiplier : null) : (prev?.mate ?? null),
-              pv: info.pv ?? prev?.pv ?? [],
-              nodes: info.nodes ?? prev?.nodes ?? 0,
-              nps: info.nps ?? prev?.nps ?? 0,
-              time: info.time ?? prev?.time ?? 0,
-            }));
-            if (info.pv && info.pv.length > 0) {
+            const normalizedScore = (info.score ?? 0) * scoreMultiplier;
+            const normalizedMate = info.mate !== undefined && info.mate !== null
+              ? info.mate * scoreMultiplier
+              : null;
+
+            const pvIndex = info.multipv ?? 1;
+
+            // Update the line in our map
+            const engineLine: EngineLine = {
+              multipv: pvIndex,
+              depth: info.depth,
+              score: normalizedScore,
+              mate: normalizedMate,
+              pv: info.pv,
+            };
+            linesRef.current.set(pvIndex, engineLine);
+
+            // Convert map to sorted array and update state
+            const sortedLines = Array.from(linesRef.current.values())
+              .sort((a, b) => a.multipv - b.multipv);
+            setLines(sortedLines);
+
+            // Update best line (multipv 1) as the main eval
+            if (pvIndex === 1) {
+              setCurrentEval(prev => ({
+                depth: info.depth ?? prev?.depth ?? 0,
+                score: normalizedScore,
+                mate: normalizedMate,
+                pv: info.pv ?? prev?.pv ?? [],
+                nodes: info.nodes ?? prev?.nodes ?? 0,
+                nps: info.nps ?? prev?.nps ?? 0,
+                time: info.time ?? prev?.time ?? 0,
+              }));
               setBestLine(info.pv);
               setBestMove(info.pv[0]);
             }
@@ -203,6 +249,9 @@ export function useStockfish(options: UseStockfishOptions = {}): UseStockfishRet
   const analyze = useCallback((fen: string) => {
     // Store the FEN for score normalization
     currentFenRef.current = fen;
+    // Clear previous lines when starting new analysis
+    linesRef.current.clear();
+    setLines([]);
 
     if (!workerRef.current) {
       // Queue the analysis for when ready
@@ -241,6 +290,7 @@ export function useStockfish(options: UseStockfishOptions = {}): UseStockfishRet
     error,
     bestMove,
     bestLine,
+    lines,
     analyze,
     stop,
   };

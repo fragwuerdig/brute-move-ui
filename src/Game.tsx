@@ -6,6 +6,7 @@ import { useChessGame } from './hooks/useChessGame';
 import { useStockfish } from './hooks/useStockfish';
 import { useNameService } from './hooks';
 import { ChessBoard } from './components/ChessBoard';
+import { EnginePanel } from './components/EnginePanel';
 import TurnIndicator from './TurnIndicator';
 import { ActionCard } from './ActionCard';
 import { uciToPgn, addressEllipsis } from './Common';
@@ -16,6 +17,13 @@ interface GameProps {
     gameAddress?: string;
 }
 
+// Track evaluation for a position
+interface PositionEval {
+    fen: string;
+    score: number;
+    bestMove: string | null;
+}
+
 function Game({ gameAddress, variant }: GameProps) {
     const { connectedAddr } = useWallet();
     const [mode, setMode] = useState<'live' | 'exploration'>('live');
@@ -23,6 +31,8 @@ function Game({ gameAddress, variant }: GameProps) {
     const [offerDraw, setOfferDraw] = useState(false);
     const [drawDismissed, setDrawDismissed] = useState(false);
     const [playerNames, setPlayerNames] = useState<{ white: string | null; black: string | null }>({ white: null, black: null });
+    // Store evaluations for each position we've analyzed
+    const [evalCache, setEvalCache] = useState<Map<string, PositionEval>>(new Map());
 
     // Name service for resolving player addresses
     const { resolveAddresses } = useNameService();
@@ -66,6 +76,46 @@ function Game({ gameAddress, variant }: GameProps) {
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [localGame.fen, engineEnabled, isExploration]);
+
+    // Cache evaluations when engine finishes analyzing at good depth
+    useEffect(() => {
+        if (engine.currentEval && engine.currentEval.depth >= 12 && engine.bestMove) {
+            const fen = localGame.fen;
+            setEvalCache(prev => {
+                const newCache = new Map(prev);
+                newCache.set(fen, {
+                    fen,
+                    score: engine.currentEval!.score,
+                    bestMove: engine.bestMove,
+                });
+                return newCache;
+            });
+        }
+    }, [engine.currentEval, engine.bestMove, localGame.fen]);
+
+    // Build lastMove data for quality assessment
+    const lastMoveQualityData = (() => {
+        if (!isExploration || !engineEnabled) return undefined;
+        if (localGame.historyIndex <= 0) return undefined;
+
+        const prevIndex = localGame.historyIndex - 1;
+        const prevFen = localGame.history[prevIndex];
+        const currFen = localGame.fen;
+        const playedMove = localGame.moveHistory[prevIndex];
+
+        if (!prevFen || !playedMove) return undefined;
+
+        const prevEvalData = evalCache.get(prevFen);
+        const currEvalData = evalCache.get(currFen);
+
+        return {
+            uci: playedMove,
+            prevFen,
+            prevEval: prevEvalData?.score ?? null,
+            currEval: currEvalData?.score ?? engine.currentEval?.score ?? null,
+            bestMove: prevEvalData?.bestMove ?? null,
+        };
+    })();
 
     // Handle live move
     const handleLiveMove = (from: Square, to: Square, promotion?: string): boolean => {
@@ -271,37 +321,17 @@ function Game({ gameAddress, variant }: GameProps) {
 
                 {/* Engine Panel (exploration mode only) */}
                 {isExploration && (
-                    <div className="game-engine-panel">
-                        <button
-                            className={`game-engine-toggle ${engineEnabled ? 'game-engine-toggle--active' : ''}`}
-                            onClick={() => setEngineEnabled(!engineEnabled)}
-                        >
-                            {engineEnabled ? (engine.isReady ? 'Engine On' : 'Loading...') : 'Enable Engine'}
-                        </button>
-
-                        {engineEnabled && engine.currentEval && (
-                            <div className="game-engine-info">
-                                <div className="game-engine-info__eval">
-                                    {engine.currentEval.mate !== null
-                                        ? `M${Math.abs(engine.currentEval.mate)}`
-                                        : `${(engine.currentEval.score / 100).toFixed(1)}`
-                                    }
-                                </div>
-                                <div className="game-engine-info__depth">
-                                    Depth: {engine.currentEval.depth}
-                                </div>
-                                {engine.bestLine.length > 0 && (
-                                    <div className="game-engine-info__line">
-                                        {engine.bestLine.slice(0, 5).join(' ')}
-                                    </div>
-                                )}
-                            </div>
-                        )}
-
-                        {engine.error && (
-                            <div className="game-engine-error">{engine.error}</div>
-                        )}
-                    </div>
+                    <EnginePanel
+                        enabled={engineEnabled}
+                        isReady={engine.isReady}
+                        isAnalyzing={engine.isAnalyzing}
+                        lines={engine.lines}
+                        depth={engine.currentEval?.depth ?? 0}
+                        fen={localGame.fen}
+                        error={engine.error}
+                        onToggle={() => setEngineEnabled(!engineEnabled)}
+                        lastMove={lastMoveQualityData}
+                    />
                 )}
 
                 <ActionCard

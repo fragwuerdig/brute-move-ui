@@ -1,0 +1,287 @@
+/* ============================================
+   ENGINE PANEL - ANALYSIS DISPLAY
+   ============================================ */
+
+.engine-panel {
+  background: linear-gradient(145deg, #1e1f26 0%, #14151a 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Toggle Button */
+.engine-panel__toggle {
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #a0a3b1;
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.engine-panel__toggle:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.engine-panel__toggle--active {
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.2) 0%, rgba(76, 175, 80, 0.1) 100%);
+  border-color: rgba(76, 175, 80, 0.4);
+  color: #4caf50;
+}
+
+.engine-panel__toggle--active:hover {
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.3) 0%, rgba(76, 175, 80, 0.15) 100%);
+}
+
+/* Lines Container */
+.engine-panel__lines {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Header with depth */
+.engine-panel__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: 4px;
+}
+
+.engine-panel__depth {
+  font-size: 11px;
+  font-weight: 500;
+  color: #6b6e7a;
+  font-family: monospace;
+}
+
+.engine-panel__analyzing {
+  width: 8px;
+  height: 8px;
+  background: #4caf50;
+  border-radius: 50%;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* Individual Engine Line */
+.engine-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 6px 8px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 6px;
+  transition: background 150ms ease;
+}
+
+.engine-line:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Evaluation Score */
+.engine-line__eval {
+  flex-shrink: 0;
+  min-width: 48px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  background: rgba(128, 128, 128, 0.2);
+  color: #a0a3b1;
+}
+
+.engine-line__eval--winning {
+  background: rgba(76, 175, 80, 0.2);
+  color: #4caf50;
+}
+
+.engine-line__eval--losing {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+.engine-line__eval--equal {
+  background: rgba(156, 163, 175, 0.15);
+  color: #9ca3af;
+}
+
+/* Move Line */
+.engine-line__moves {
+  flex: 1;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 12px;
+  color: #d1d5db;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+/* Loading State */
+.engine-panel__loading {
+  padding: 16px;
+  text-align: center;
+  color: #6b6e7a;
+  font-size: 13px;
+}
+
+/* ============================================
+   MOVE QUALITY BADGE
+   ============================================ */
+
+.move-quality {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.move-quality__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.move-quality__badge {
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.move-quality__move {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.move-quality__best {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.move-quality__best strong {
+  color: #4caf50;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+/* Quality Variants */
+.move-quality--brilliant {
+  background: linear-gradient(135deg, rgba(0, 255, 255, 0.15) 0%, rgba(0, 255, 255, 0.05) 100%);
+  border-color: rgba(0, 255, 255, 0.4);
+}
+
+.move-quality--brilliant .move-quality__badge {
+  background: rgba(0, 255, 255, 0.3);
+  color: #00ffff;
+}
+
+.move-quality--great {
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.15) 0%, rgba(76, 175, 80, 0.05) 100%);
+  border-color: rgba(76, 175, 80, 0.4);
+}
+
+.move-quality--great .move-quality__badge {
+  background: rgba(76, 175, 80, 0.3);
+  color: #4caf50;
+}
+
+.move-quality--good {
+  background: linear-gradient(135deg, rgba(139, 195, 74, 0.15) 0%, rgba(139, 195, 74, 0.05) 100%);
+  border-color: rgba(139, 195, 74, 0.4);
+}
+
+.move-quality--good .move-quality__badge {
+  background: rgba(139, 195, 74, 0.3);
+  color: #8bc34a;
+}
+
+.move-quality--book {
+  background: linear-gradient(135deg, rgba(156, 163, 175, 0.15) 0%, rgba(156, 163, 175, 0.05) 100%);
+  border-color: rgba(156, 163, 175, 0.4);
+}
+
+.move-quality--book .move-quality__badge {
+  background: rgba(156, 163, 175, 0.3);
+  color: #9ca3af;
+}
+
+.move-quality--inaccuracy {
+  background: linear-gradient(135deg, rgba(255, 193, 7, 0.15) 0%, rgba(255, 193, 7, 0.05) 100%);
+  border-color: rgba(255, 193, 7, 0.4);
+}
+
+.move-quality--inaccuracy .move-quality__badge {
+  background: rgba(255, 193, 7, 0.3);
+  color: #ffc107;
+}
+
+.move-quality--mistake {
+  background: linear-gradient(135deg, rgba(255, 152, 0, 0.15) 0%, rgba(255, 152, 0, 0.05) 100%);
+  border-color: rgba(255, 152, 0, 0.4);
+}
+
+.move-quality--mistake .move-quality__badge {
+  background: rgba(255, 152, 0, 0.3);
+  color: #ff9800;
+}
+
+.move-quality--blunder {
+  background: linear-gradient(135deg, rgba(244, 67, 54, 0.15) 0%, rgba(244, 67, 54, 0.05) 100%);
+  border-color: rgba(244, 67, 54, 0.4);
+}
+
+.move-quality--blunder .move-quality__badge {
+  background: rgba(244, 67, 54, 0.3);
+  color: #f44336;
+}
+
+/* Error State */
+.engine-panel__error {
+  font-size: 12px;
+  color: #f44336;
+  text-align: center;
+  padding: 8px;
+  background: rgba(244, 67, 54, 0.1);
+  border-radius: 6px;
+}
+
+/* Mobile Responsive */
+@media (max-width: 600px) {
+  .engine-panel {
+    padding: 10px;
+  }
+
+  .engine-line {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .engine-line__eval {
+    min-width: auto;
+    align-self: flex-start;
+  }
+
+  .engine-line__moves {
+    font-size: 11px;
+  }
+}
