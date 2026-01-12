@@ -87,8 +87,8 @@ const Home: React.FC = () => {
                         <button className="home-btn home-btn--play" onClick={() => navigate('/play')}>
                             Play
                         </button>
-                        <button className="home-btn home-btn--secondary" onClick={() => navigate('/my-games')}>
-                            My Games
+                        <button className="home-btn home-btn--secondary" onClick={() => navigate('/games')}>
+                            Games
                         </button>
                     </div>
                 </div>

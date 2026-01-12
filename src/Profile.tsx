@@ -10,7 +10,7 @@ const MAX_IMAGE_SIZE = 100 * 1024; // 100KB max for base64 storage
 
 function Profile() {
     const navigate = useNavigate();
-    const { connectedAddr } = useWallet();
+    const { connectedAddr, connect } = useWallet();
     const {
         myProfile,
         isLoadingMyProfile,
@@ -184,7 +184,14 @@ function Profile() {
                 <GlassCard accent>
                     <div className="profile-content">
                         <h1 className="profile-title">Profile</h1>
-                        <p className="profile-connect-msg">Please connect your wallet to manage your profile.</p>
+                        <p className="profile-connect-msg">Connect your wallet to manage your profile.</p>
+                        <button
+                            className="profile-btn profile-btn--primary"
+                            onClick={connect}
+                            style={{ marginTop: '16px' }}
+                        >
+                            Connect Wallet
+                        </button>
                     </div>
                 </GlassCard>
             </div>

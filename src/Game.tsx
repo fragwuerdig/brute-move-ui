@@ -156,7 +156,7 @@ function Game({ gameAddress, variant }: GameProps) {
     // Share game link
     const handleShare = () => {
         if (!gameAddress) return;
-        const url = `${window.location.origin}/games/${gameAddress}`;
+        const url = `${window.location.origin}/game/${gameAddress}`;
         navigator.clipboard.writeText(url).then(() => {
             alert('Game link copied to clipboard: ' + url);
         }).catch((err) => {

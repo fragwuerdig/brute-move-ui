@@ -249,7 +249,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
   return (
     <WalletContext.Provider value={value}>
       { toastStatus && <Toast status={toastStatus} /> }
-      { (localStorage.getItem(STORAGE_KEY) && !connected) ? <></> : children }
+      {children}
       {showModal && <Modal onSelect={handleSelect} connecting={connecting} />}
     </WalletContext.Provider>
   );
