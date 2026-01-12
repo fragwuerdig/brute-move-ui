@@ -9,15 +9,60 @@
 /* Frame styles */
 .board-frame {
     width: 100%;
+    aspect-ratio: 1 / 1;
     background: linear-gradient(145deg, #1e1f26 0%, #14151a 100%);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 20px;
     padding: 12px;
+    box-sizing: border-box;
     box-shadow:
         0 20px 60px rgba(0, 0, 0, 0.5),
         inset 0 1px 0 rgba(255, 255, 255, 0.05);
     transition: all 300ms ease;
-    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Eval bar wrapper - animates width/opacity */
+.board-frame__eval-wrapper {
+    flex-shrink: 0;
+    overflow: hidden;
+    transition: width 300ms ease, margin 300ms ease, opacity 300ms ease;
+}
+
+/* Eval bar inside frame - always vertical */
+.board-frame .eval-bar {
+    width: 16px;
+    height: 100%;
+    min-height: unset;
+    border-radius: 8px;
+    flex-shrink: 0;
+    flex-direction: column;
+}
+
+.board-frame .eval-bar__fill--white {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: auto;
+    width: auto;
+    background: linear-gradient(to top, #f0f0f0, #e0e0e0);
+}
+
+.board-frame .eval-bar__fill--black {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: auto;
+    width: auto;
+    background: linear-gradient(to bottom, #1a1a1a, #2a2a2a);
+}
+
+.board-frame .eval-bar__value {
+    transform: translate(-50%, -50%) rotate(-90deg);
 }
 
 .board-frame:hover {

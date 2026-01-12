@@ -3,8 +3,10 @@ import type { Square } from 'react-chessboard/dist/chessboard/types';
 import { useWallet } from './WalletProvider';
 import { useOnChainGame } from './hooks/useOnChainGame';
 import { useChessGame } from './hooks/useChessGame';
+import { useStockfish } from './hooks/useStockfish';
 import { useNameService } from './hooks';
 import { ChessBoard } from './components/ChessBoard';
+import { EnginePanel } from './components/EnginePanel';
 import TurnIndicator from './TurnIndicator';
 import { ActionCard } from './ActionCard';
 import { uciToPgn, addressEllipsis } from './Common';
@@ -15,12 +17,22 @@ interface GameProps {
     gameAddress?: string;
 }
 
+// Track evaluation for a position
+interface PositionEval {
+    fen: string;
+    score: number;
+    bestMove: string | null;
+}
+
 function Game({ gameAddress, variant }: GameProps) {
     const { connectedAddr } = useWallet();
     const [mode, setMode] = useState<'live' | 'exploration'>('live');
+    const [engineEnabled, setEngineEnabled] = useState(false);
     const [offerDraw, setOfferDraw] = useState(false);
     const [drawDismissed, setDrawDismissed] = useState(false);
     const [playerNames, setPlayerNames] = useState<{ white: string | null; black: string | null }>({ white: null, black: null });
+    // Store evaluations for each position we've analyzed
+    const [evalCache, setEvalCache] = useState<Map<string, PositionEval>>(new Map());
 
     // Name service for resolving player addresses
     const { resolveAddresses } = useNameService();
@@ -50,6 +62,62 @@ function Game({ gameAddress, variant }: GameProps) {
         initialFen: onChain.fen,
     });
 
+    // Stockfish engine (only active in exploration mode when enabled, and only for finished games)
+    const isExploration = mode === 'exploration';
+    const isGameFinished = onChain.gameInfo?.is_finished ?? false;
+    const engine = useStockfish({
+        enabled: engineEnabled && isExploration && isGameFinished,
+        depth: 18,
+    });
+
+    // Re-analyze when exploration position changes
+    useEffect(() => {
+        if (engineEnabled && isExploration && isGameFinished) {
+            engine.analyze(localGame.fen);
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [localGame.fen, engineEnabled, isExploration, isGameFinished]);
+
+    // Cache evaluations when engine finishes analyzing at good depth
+    useEffect(() => {
+        if (engine.currentEval && engine.currentEval.depth >= 12 && engine.bestMove) {
+            const fen = localGame.fen;
+            setEvalCache(prev => {
+                const newCache = new Map(prev);
+                newCache.set(fen, {
+                    fen,
+                    score: engine.currentEval!.score,
+                    bestMove: engine.bestMove,
+                });
+                return newCache;
+            });
+        }
+    }, [engine.currentEval, engine.bestMove, localGame.fen]);
+
+    // Build lastMove data for quality assessment
+    const lastMoveQualityData = (() => {
+        if (!isExploration || !engineEnabled) return undefined;
+        if (localGame.historyIndex <= 0) return undefined;
+
+        const prevIndex = localGame.historyIndex - 1;
+        const prevFen = localGame.history[prevIndex];
+        const currFen = localGame.fen;
+        const playedMove = localGame.moveHistory[prevIndex];
+
+        if (!prevFen || !playedMove) return undefined;
+
+        const prevEvalData = evalCache.get(prevFen);
+        const currEvalData = evalCache.get(currFen);
+
+        return {
+            uci: playedMove,
+            prevFen,
+            prevEval: prevEvalData?.score ?? null,
+            currEval: currEvalData?.score ?? engine.currentEval?.score ?? null,
+            bestMove: prevEvalData?.bestMove ?? null,
+        };
+    })();
+
     // Handle live move
     const handleLiveMove = (from: Square, to: Square, promotion?: string): boolean => {
         if (onChain.isViewingHistory) {
@@ -74,9 +142,10 @@ function Game({ gameAddress, variant }: GameProps) {
         return localGame.move(from, to, promotion);
     };
 
-    // Enter exploration mode
+    // Enter exploration mode with full game history
     const enterExploration = () => {
-        localGame.setPosition(onChain.fen);
+        // Load the complete game history so user can navigate through all positions
+        localGame.loadHistory(onChain.historyFens, onChain.history, onChain.historyIndex);
         setMode('exploration');
     };
 
@@ -88,7 +157,7 @@ function Game({ gameAddress, variant }: GameProps) {
     // Share game link
     const handleShare = () => {
         if (!gameAddress) return;
-        const url = `${window.location.origin}/games/${gameAddress}`;
+        const url = `${window.location.origin}/game/${gameAddress}`;
         navigator.clipboard.writeText(url).then(() => {
             alert('Game link copied to clipboard: ' + url);
         }).catch((err) => {
@@ -179,8 +248,6 @@ function Game({ gameAddress, variant }: GameProps) {
         return <div className="game-container" />;
     }
 
-    const isExploration = mode === 'exploration';
-
     return (
         <div className="game-container">
             {/* Mobile Turn Indicator - above board */}
@@ -219,13 +286,18 @@ function Game({ gameAddress, variant }: GameProps) {
                     onExit={exitExploration}
                     canUndo={localGame.canUndo}
                     canRedo={localGame.canRedo}
-                    // Live history navigation
-                    historyIndex={isExploration ? undefined : onChain.historyIndex}
-                    historyLength={isExploration ? undefined : onChain.historyFens.length}
-                    onHistoryBack={onChain.goBack}
-                    onHistoryForward={onChain.goForward}
-                    onHistoryStart={onChain.goToStart}
-                    onHistoryEnd={onChain.goToLatest}
+                    // History navigation (works in both modes)
+                    historyIndex={isExploration ? localGame.historyIndex : onChain.historyIndex}
+                    historyLength={isExploration ? localGame.history.length : onChain.historyFens.length}
+                    onHistoryBack={isExploration ? localGame.undo : onChain.goBack}
+                    onHistoryForward={isExploration ? localGame.redo : onChain.goForward}
+                    onHistoryStart={isExploration ? localGame.reset : onChain.goToStart}
+                    onHistoryEnd={isExploration ? () => localGame.goToMove(localGame.history.length - 1) : onChain.goToLatest}
+                    // Evaluation bar (exploration mode with engine enabled)
+                    evaluation={isExploration && engineEnabled && engine.currentEval ? {
+                        score: engine.currentEval.score,
+                        mate: engine.currentEval.mate
+                    } : undefined}
                 />
             </div>
 
@@ -247,6 +319,21 @@ function Game({ gameAddress, variant }: GameProps) {
 
                 {/* Move history - content will be added later */}
                 <div className="game-move-history" />
+
+                {/* Engine Panel (exploration mode only, and only for finished games) */}
+                {isExploration && onChain.gameInfo?.is_finished && (
+                    <EnginePanel
+                        enabled={engineEnabled}
+                        isReady={engine.isReady}
+                        isAnalyzing={engine.isAnalyzing}
+                        lines={engine.lines}
+                        depth={engine.currentEval?.depth ?? 0}
+                        fen={localGame.fen}
+                        error={engine.error}
+                        onToggle={() => setEngineEnabled(!engineEnabled)}
+                        lastMove={lastMoveQualityData}
+                    />
+                )}
 
                 <ActionCard
                     variant="compact"

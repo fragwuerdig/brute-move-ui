@@ -19,7 +19,7 @@ const PERIOD_OPTIONS: PeriodOption[] = [
 
 function Play() {
     const navigate = useNavigate();
-    const { chain, connectedAddr } = useWallet();
+    const { chain, connectedAddr, connect, connected } = useWallet();
     const [games, setGames] = useState<JoinableGame[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -114,12 +114,21 @@ function Play() {
                         <div className="play-empty">
                             <p className="play-empty__title">No open games</p>
                             <p className="play-empty__desc">Be the first to create one!</p>
-                            <button
-                                className="play-btn play-btn--create"
-                                onClick={() => navigate('/create')}
-                            >
-                                Create Game
-                            </button>
+                            {connected ? (
+                                <button
+                                    className="play-btn play-btn--create"
+                                    onClick={() => navigate('/create')}
+                                >
+                                    Create Game
+                                </button>
+                            ) : (
+                                <button
+                                    className="play-btn play-btn--create"
+                                    onClick={connect}
+                                >
+                                    Connect to Create
+                                </button>
+                            )}
                         </div>
                     )}
 
@@ -141,12 +150,21 @@ function Play() {
                                                 <span className="play-game__time">{formatTime(game.create_time)}</span>
                                             </div>
                                         </div>
-                                        <button
-                                            className="play-btn play-btn--join"
-                                            onClick={() => handleJoinGame(game.id)}
-                                        >
-                                            Join
-                                        </button>
+                                        {connected ? (
+                                            <button
+                                                className="play-btn play-btn--join"
+                                                onClick={() => handleJoinGame(game.id)}
+                                            >
+                                                Join
+                                            </button>
+                                        ) : (
+                                            <button
+                                                className="play-btn play-btn--join"
+                                                onClick={connect}
+                                            >
+                                                Connect
+                                            </button>
+                                        )}
                                     </div>
                                 ))}
                             </div>

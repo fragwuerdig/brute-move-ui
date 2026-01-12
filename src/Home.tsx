@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { fetchContractStateSmart, getFactoryAddr, type JoinableGame } from './Common';
 import { useWallet } from './WalletProvider';
 import { GlassCard } from './GlassCard';
@@ -76,6 +76,7 @@ const Home: React.FC = () => {
             <div className="home-hero">
                 <h1 className="home-hero__title">Play Chess On-Chain</h1>
                 <p className="home-hero__subtitle">Stake, play, and win on Terra Classic</p>
+                <span className="home-hero__faq-text">Have questions? <Link to="/faq" className="home-hero__faq-link">Check our FAQ!</Link></span>
             </div>
 
             {/* Quick Play Card */}
@@ -87,8 +88,8 @@ const Home: React.FC = () => {
                         <button className="home-btn home-btn--play" onClick={() => navigate('/play')}>
                             Play
                         </button>
-                        <button className="home-btn home-btn--secondary" onClick={() => navigate('/my-games')}>
-                            My Games
+                        <button className="home-btn home-btn--secondary" onClick={() => navigate('/games')}>
+                            Games
                         </button>
                     </div>
                 </div>

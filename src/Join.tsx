@@ -22,7 +22,7 @@ interface ModalState {
 }
 
 function Join({ game }: JoinProps) {
-  const { connectedAddr, chain, broadcast } = useWallet();
+  const { connectedAddr, chain, broadcast, connect, connected } = useWallet();
   const [color, setColor] = useState<ColorChoice>('Random');
   const [modal, setModal] = useState<ModalState>({ open: false, message: '', closable: true });
   const [balance, setBalance] = useState<number | null>(null);
@@ -41,7 +41,7 @@ function Join({ game }: JoinProps) {
     fetchContractStateSmart(getFactoryAddr(chain), { joinable_game: { id: game.id } }, chain)
       .then((data) => {
         if (data?.contract) {
-          navigate(`/games/${data.contract}`, { replace: true });
+          navigate(`/game/${data.contract}`, { replace: true });
         }
       })
       .catch(() => { });
@@ -133,7 +133,7 @@ function Join({ game }: JoinProps) {
           const storedGames = JSON.parse(localStorage.getItem(STORE_KEY_SAVED_GAMES) || "[]") as SavedGame[];
           storedGames.push({ address: gameAddr, name: `Game ${game.id}` });
           localStorage.setItem(STORE_KEY_SAVED_GAMES, JSON.stringify(storedGames));
-          navigate(`/games/${gameAddr}`);
+          navigate(`/game/${gameAddr}`);
         }
       })
       .catch((error) => {
@@ -225,20 +225,32 @@ function Join({ game }: JoinProps) {
 
         {/* Actions */}
         <div className="join-actions">
-          <button
-            className="join-btn join-btn--danger"
-            disabled={connectedAddr !== game.opponent}
-            onClick={handleRetract}
-          >
-            Retract
-          </button>
-          <button
-            className="join-btn join-btn--primary"
-            disabled={!connectedAddr || !!message}
-            onClick={handleJoin}
-          >
-            Join Game
-          </button>
+          {connected ? (
+            <>
+              <button
+                className="join-btn join-btn--danger"
+                disabled={connectedAddr !== game.opponent}
+                onClick={handleRetract}
+              >
+                Retract
+              </button>
+              <button
+                className="join-btn join-btn--primary"
+                disabled={!connectedAddr || !!message}
+                onClick={handleJoin}
+              >
+                Join Game
+              </button>
+            </>
+          ) : (
+            <button
+              className="join-btn join-btn--primary"
+              onClick={connect}
+              style={{ flex: 1 }}
+            >
+              Connect to Join
+            </button>
+          )}
         </div>
       </GlassCard>
 

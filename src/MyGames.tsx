@@ -22,7 +22,7 @@ interface GameRecord {
 
 function MyGames() {
     const navigate = useNavigate();
-    const { chain, connectedAddr, broadcast } = useWallet();
+    const { chain, connectedAddr, broadcast, connect, connected } = useWallet();
 
     const [myOngoingGames, setMyOngoingGames] = useState<GameRecord[]>([]);
     const [myFinishedGames, setMyFinishedGames] = useState<GameRecord[]>([]);
@@ -36,7 +36,7 @@ function MyGames() {
     const [refreshTrigger, setRefreshTrigger] = useState(0);
 
     useEffect(() => {
-        if (!chain || !connectedAddr) return;
+        if (!chain) return;
 
         const fetchGames = async () => {
             setLoading(true);
@@ -46,71 +46,82 @@ function MyGames() {
                 const gameDbAddr = getGameDbAddr(chain);
                 const factoryAddr = getFactoryAddr(chain);
 
-                // Fetch user's ongoing games
-                const myOngoing = await fetchContractStateSmart(
-                    gameDbAddr,
-                    { games_by_player: { player: connectedAddr, is_ongoing: true, limit: 50 } },
-                    chain
-                );
-
-                // Fetch user's finished games
-                const myFinished = await fetchContractStateSmart(
-                    gameDbAddr,
-                    { games_by_player: { player: connectedAddr, is_ongoing: false, limit: 20 } },
-                    chain
-                );
-
-                // Fetch other ongoing games (by factory)
+                // Fetch other ongoing games (by factory) - available to all users
                 const otherGames = await fetchContractStateSmart(
                     gameDbAddr,
                     { games_by_factory: { factory: factoryAddr, is_ongoing: true, limit: 20 } },
                     chain
                 );
 
-                // Fetch user's open challenges (joinable games)
-                const allJoinable = await fetchContractStateSmart(
-                    factoryAddr,
-                    { joinable_games: { limit: 50, period: 60 * 60 * 24 * 30 } },
-                    chain
-                );
-                const joinableGames = Array.isArray(allJoinable) ? allJoinable : [];
+                // Only fetch user-specific data if connected
+                if (connectedAddr) {
+                    // Fetch user's ongoing games
+                    const myOngoing = await fetchContractStateSmart(
+                        gameDbAddr,
+                        { games_by_player: { player: connectedAddr, is_ongoing: true, limit: 50 } },
+                        chain
+                    );
 
-                // My open challenges (games I created)
-                const myOpenChallenges = joinableGames.filter(
-                    (game: JoinableGame) => game.opponent === connectedAddr && !game.contract
-                );
+                    // Fetch user's finished games
+                    const myFinished = await fetchContractStateSmart(
+                        gameDbAddr,
+                        { games_by_player: { player: connectedAddr, is_ongoing: false, limit: 20 } },
+                        chain
+                    );
 
-                // Fetch incoming challenges (directed challenges for this user)
-                const incomingChallengesData = await fetchContractStateSmart(
-                    factoryAddr,
-                    { challenges_for: { recipient: connectedAddr } },
-                    chain
-                );
-                const myIncomingChallenges = Array.isArray(incomingChallengesData)
-                    ? incomingChallengesData.filter((g: JoinableGame) => !g.contract)
-                    : [];
+                    // Fetch user's open challenges (joinable games)
+                    const allJoinable = await fetchContractStateSmart(
+                        factoryAddr,
+                        { joinable_games: { limit: 50, period: 60 * 60 * 24 * 30 } },
+                        chain
+                    );
+                    const joinableGames = Array.isArray(allJoinable) ? allJoinable : [];
 
-                // Fetch sent challenges (directed challenges created by this user)
-                const sentChallengesData = await fetchContractStateSmart(
-                    factoryAddr,
-                    { challenges_by: { creator: connectedAddr } },
-                    chain
-                );
-                const mySentDirectedChallenges = Array.isArray(sentChallengesData)
-                    ? sentChallengesData.filter((g: JoinableGame) => !g.contract)
-                    : [];
+                    // My open challenges (games I created)
+                    const myOpenChallenges = joinableGames.filter(
+                        (game: JoinableGame) => game.opponent === connectedAddr && !game.contract
+                    );
 
-                setMyOngoingGames(Array.isArray(myOngoing) ? myOngoing : []);
-                setMyFinishedGames(Array.isArray(myFinished) ? myFinished : []);
-                setMyChallenges(myOpenChallenges);
-                setMySentChallenges(mySentDirectedChallenges);
-                setIncomingChallenges(myIncomingChallenges);
+                    // Fetch incoming challenges (directed challenges for this user)
+                    const incomingChallengesData = await fetchContractStateSmart(
+                        factoryAddr,
+                        { challenges_for: { recipient: connectedAddr } },
+                        chain
+                    );
+                    const myIncomingChallenges = Array.isArray(incomingChallengesData)
+                        ? incomingChallengesData.filter((g: JoinableGame) => !g.contract)
+                        : [];
 
-                // Filter out user's own games from "other" list
-                const filteredOther = (Array.isArray(otherGames) ? otherGames : []).filter(
-                    (game: GameRecord) => game.player_white !== connectedAddr && game.player_black !== connectedAddr
-                );
-                setOtherOngoingGames(filteredOther);
+                    // Fetch sent challenges (directed challenges created by this user)
+                    const sentChallengesData = await fetchContractStateSmart(
+                        factoryAddr,
+                        { challenges_by: { creator: connectedAddr } },
+                        chain
+                    );
+                    const mySentDirectedChallenges = Array.isArray(sentChallengesData)
+                        ? sentChallengesData.filter((g: JoinableGame) => !g.contract)
+                        : [];
+
+                    setMyOngoingGames(Array.isArray(myOngoing) ? myOngoing : []);
+                    setMyFinishedGames(Array.isArray(myFinished) ? myFinished : []);
+                    setMyChallenges(myOpenChallenges);
+                    setMySentChallenges(mySentDirectedChallenges);
+                    setIncomingChallenges(myIncomingChallenges);
+
+                    // Filter out user's own games from "other" list
+                    const filteredOther = (Array.isArray(otherGames) ? otherGames : []).filter(
+                        (game: GameRecord) => game.player_white !== connectedAddr && game.player_black !== connectedAddr
+                    );
+                    setOtherOngoingGames(filteredOther);
+                } else {
+                    // Not connected - clear user-specific data, show all live games
+                    setMyOngoingGames([]);
+                    setMyFinishedGames([]);
+                    setMyChallenges([]);
+                    setMySentChallenges([]);
+                    setIncomingChallenges([]);
+                    setOtherOngoingGames(Array.isArray(otherGames) ? otherGames : []);
+                }
 
             } catch (err) {
                 console.error('Failed to fetch games:', err);
@@ -124,7 +135,7 @@ function MyGames() {
     }, [chain, connectedAddr, refreshTrigger]);
 
     const handleOpenGame = (gameAddress: string) => {
-        navigate(`/games/${gameAddress}`);
+        navigate(`/game/${gameAddress}`);
     };
 
     const handleCancelChallenge = async (gameId: string, e: React.MouseEvent) => {
@@ -194,8 +205,8 @@ function MyGames() {
     return (
         <div className="mygames-container">
             <div className="mygames-header">
-                <h1 className="mygames-header__title">My Games</h1>
-                <p className="mygames-header__subtitle">Track your ongoing and past games</p>
+                <h1 className="mygames-header__title">Games</h1>
+                <p className="mygames-header__subtitle">Track ongoing and past games</p>
             </div>
 
             {loading && (
@@ -216,155 +227,176 @@ function MyGames() {
 
             {!loading && !error && (
                 <>
-                    {/* Incoming Challenges */}
-                    {incomingChallenges.length > 0 && (
-                        <GlassCard accent>
-                            <div className="mygames-section">
-                                <h2 className="mygames-section__title">
-                                    Incoming Challenges
-                                </h2>
-                                <p className="mygames-section__desc">Players who challenged you</p>
-                                <div className="mygames-list">
-                                    {incomingChallenges.map((challenge) => (
-                                        <div
-                                            key={challenge.id}
-                                            className="mygames-game mygames-game--incoming"
-                                            onClick={() => navigate(`/join/${challenge.id}`)}
-                                        >
-                                            <div className="mygames-game__color">
-                                                <span className={`mygames-dot mygames-dot--${challenge.opponent_color === 'White' ? 'black' : challenge.opponent_color === 'Black' ? 'white' : 'white'}`} />
-                                            </div>
-                                            <div className="mygames-game__info">
-                                                <span className="mygames-game__opponent">from <AddressDisplay address={challenge.opponent} /></span>
-                                                <span className="mygames-game__bet">{formatBet(challenge.bet)} LUNC</span>
-                                            </div>
-                                            <div className="mygames-game__action">
-                                                <span className="mygames-join-btn">Join</span>
-                                            </div>
+                    {/* Connected user sections */}
+                    {connected ? (
+                        <>
+                            {/* Incoming Challenges */}
+                            {incomingChallenges.length > 0 && (
+                                <GlassCard accent>
+                                    <div className="mygames-section">
+                                        <h2 className="mygames-section__title">
+                                            Incoming Challenges
+                                        </h2>
+                                        <p className="mygames-section__desc">Players who challenged you</p>
+                                        <div className="mygames-list">
+                                            {incomingChallenges.map((challenge) => (
+                                                <div
+                                                    key={challenge.id}
+                                                    className="mygames-game mygames-game--incoming"
+                                                    onClick={() => navigate(`/join/${challenge.id}`)}
+                                                >
+                                                    <div className="mygames-game__color">
+                                                        <span className={`mygames-dot mygames-dot--${challenge.opponent_color === 'White' ? 'black' : challenge.opponent_color === 'Black' ? 'white' : 'white'}`} />
+                                                    </div>
+                                                    <div className="mygames-game__info">
+                                                        <span className="mygames-game__opponent">from <AddressDisplay address={challenge.opponent} /></span>
+                                                        <span className="mygames-game__bet">{formatBet(challenge.bet)} LUNC</span>
+                                                    </div>
+                                                    <div className="mygames-game__action">
+                                                        <span className="mygames-join-btn">Join</span>
+                                                    </div>
+                                                </div>
+                                            ))}
                                         </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </GlassCard>
-                    )}
+                                    </div>
+                                </GlassCard>
+                            )}
 
-                    {/* Your Open Challenges */}
-                    {(myChallenges.length > 0 || mySentChallenges.length > 0) && (
-                        <GlassCard accent>
-                            <div className="mygames-section">
-                                <h2 className="mygames-section__title">
-                                    Your Open Challenges
-                                </h2>
-                                <p className="mygames-section__desc">Waiting for an opponent to join</p>
-                                <div className="mygames-list">
-                                    {[...myChallenges, ...mySentChallenges].map((challenge) => (
-                                        <div
-                                            key={challenge.id}
-                                            className="mygames-game mygames-game--challenge"
-                                            onClick={() => navigate(`/join/${challenge.id}`)}
-                                        >
-                                            <div className="mygames-game__color">
-                                                <span className={`mygames-dot mygames-dot--${challenge.opponent_color?.toLowerCase() || 'white'}`} />
-                                            </div>
-                                            <div className="mygames-game__info">
-                                                {challenge.recipient ? (
-                                                    <span className="mygames-game__opponent">to <AddressDisplay address={challenge.recipient} /></span>
-                                                ) : (
-                                                    <span className="mygames-game__opponent">Open challenge</span>
-                                                )}
-                                                <span className="mygames-game__bet">{formatBet(challenge.bet)} LUNC</span>
-                                            </div>
+                            {/* Your Open Challenges */}
+                            {(myChallenges.length > 0 || mySentChallenges.length > 0) && (
+                                <GlassCard accent>
+                                    <div className="mygames-section">
+                                        <h2 className="mygames-section__title">
+                                            Your Open Challenges
+                                        </h2>
+                                        <p className="mygames-section__desc">Waiting for an opponent to join</p>
+                                        <div className="mygames-list">
+                                            {[...myChallenges, ...mySentChallenges].map((challenge) => (
+                                                <div
+                                                    key={challenge.id}
+                                                    className="mygames-game mygames-game--challenge"
+                                                    onClick={() => navigate(`/join/${challenge.id}`)}
+                                                >
+                                                    <div className="mygames-game__color">
+                                                        <span className={`mygames-dot mygames-dot--${challenge.opponent_color?.toLowerCase() || 'white'}`} />
+                                                    </div>
+                                                    <div className="mygames-game__info">
+                                                        {challenge.recipient ? (
+                                                            <span className="mygames-game__opponent">to <AddressDisplay address={challenge.recipient} /></span>
+                                                        ) : (
+                                                            <span className="mygames-game__opponent">Open challenge</span>
+                                                        )}
+                                                        <span className="mygames-game__bet">{formatBet(challenge.bet)} LUNC</span>
+                                                    </div>
+                                                    <button
+                                                        className="mygames-cancel-btn"
+                                                        onClick={(e) => handleCancelChallenge(challenge.id, e)}
+                                                        disabled={cancellingId === challenge.id}
+                                                    >
+                                                        {cancellingId === challenge.id ? '...' : 'Cancel'}
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </GlassCard>
+                            )}
+
+                            {/* My Ongoing Games */}
+                            <GlassCard accent>
+                                <div className="mygames-section">
+                                    <h2 className="mygames-section__title">
+                                        Ongoing Games
+                                    </h2>
+                                    {myOngoingGames.length === 0 ? (
+                                        <div className="mygames-empty">
+                                            <p>No ongoing games</p>
                                             <button
-                                                className="mygames-cancel-btn"
-                                                onClick={(e) => handleCancelChallenge(challenge.id, e)}
-                                                disabled={cancellingId === challenge.id}
+                                                className="mygames-btn mygames-btn--create"
+                                                onClick={() => navigate('/play')}
                                             >
-                                                {cancellingId === challenge.id ? '...' : 'Cancel'}
+                                                Find a Game
                                             </button>
                                         </div>
-                                    ))}
+                                    ) : (
+                                        <div className="mygames-list">
+                                            {myOngoingGames.map((game) => (
+                                                <div
+                                                    key={game.id}
+                                                    className="mygames-game mygames-game--ongoing"
+                                                    onClick={() => handleOpenGame(game.game_address)}
+                                                >
+                                                    <div className="mygames-game__color">
+                                                        <span className={`mygames-dot mygames-dot--${getMyColor(game)}`} />
+                                                    </div>
+                                                    <div className="mygames-game__info">
+                                                        <span className="mygames-game__opponent">vs <AddressDisplay address={getOpponentAddress(game)} /></span>
+                                                        <span className="mygames-game__time">{formatTime(game.creation_time)}</span>
+                                                    </div>
+                                                    <div className="mygames-game__action">
+                                                        <span className="mygames-arrow">→</span>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </GlassCard>
+
+                            {/* Game History */}
+                            <GlassCard accent>
+                                <div className="mygames-section">
+                                    <h2 className="mygames-section__title">
+                                        Game History
+                                    </h2>
+                                    {myFinishedGames.length === 0 ? (
+                                        <div className="mygames-empty">
+                                            <p>No completed games yet</p>
+                                        </div>
+                                    ) : (
+                                        <div className="mygames-list">
+                                            {myFinishedGames.map((game) => (
+                                                <div
+                                                    key={game.id}
+                                                    className="mygames-game mygames-game--finished"
+                                                    onClick={() => handleOpenGame(game.game_address)}
+                                                >
+                                                    <div className="mygames-game__color">
+                                                        <span className={`mygames-dot mygames-dot--${getMyColor(game)}`} />
+                                                    </div>
+                                                    <div className="mygames-game__info">
+                                                        <span className="mygames-game__opponent">vs <AddressDisplay address={getOpponentAddress(game)} /></span>
+                                                        <span className="mygames-game__time">{formatTime(game.creation_time)}</span>
+                                                    </div>
+                                                    <div className={`mygames-result ${getResultClass(game)}`}>
+                                                        {getResultText(game)}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </GlassCard>
+                        </>
+                    ) : (
+                        /* Not connected - show connect prompt */
+                        <GlassCard accent>
+                            <div className="mygames-section">
+                                <h2 className="mygames-section__title">Your Games</h2>
+                                <div className="mygames-empty">
+                                    <p>Connect your wallet to see your games</p>
+                                    <button
+                                        className="mygames-btn mygames-btn--create"
+                                        onClick={connect}
+                                    >
+                                        Connect Wallet
+                                    </button>
                                 </div>
                             </div>
                         </GlassCard>
                     )}
 
-                    {/* My Ongoing Games */}
-                    <GlassCard accent>
-                        <div className="mygames-section">
-                            <h2 className="mygames-section__title">
-                                Ongoing Games
-                            </h2>
-                            {myOngoingGames.length === 0 ? (
-                                <div className="mygames-empty">
-                                    <p>No ongoing games</p>
-                                    <button
-                                        className="mygames-btn mygames-btn--create"
-                                        onClick={() => navigate('/play')}
-                                    >
-                                        Find a Game
-                                    </button>
-                                </div>
-                            ) : (
-                                <div className="mygames-list">
-                                    {myOngoingGames.map((game) => (
-                                        <div
-                                            key={game.id}
-                                            className="mygames-game mygames-game--ongoing"
-                                            onClick={() => handleOpenGame(game.game_address)}
-                                        >
-                                            <div className="mygames-game__color">
-                                                <span className={`mygames-dot mygames-dot--${getMyColor(game)}`} />
-                                            </div>
-                                            <div className="mygames-game__info">
-                                                <span className="mygames-game__opponent">vs <AddressDisplay address={getOpponentAddress(game)} /></span>
-                                                <span className="mygames-game__time">{formatTime(game.creation_time)}</span>
-                                            </div>
-                                            <div className="mygames-game__action">
-                                                <span className="mygames-arrow">→</span>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    </GlassCard>
-
-                    {/* Game History */}
-                    <GlassCard accent>
-                        <div className="mygames-section">
-                            <h2 className="mygames-section__title">
-                                Game History
-                            </h2>
-                            {myFinishedGames.length === 0 ? (
-                                <div className="mygames-empty">
-                                    <p>No completed games yet</p>
-                                </div>
-                            ) : (
-                                <div className="mygames-list">
-                                    {myFinishedGames.map((game) => (
-                                        <div
-                                            key={game.id}
-                                            className="mygames-game mygames-game--finished"
-                                            onClick={() => handleOpenGame(game.game_address)}
-                                        >
-                                            <div className="mygames-game__color">
-                                                <span className={`mygames-dot mygames-dot--${getMyColor(game)}`} />
-                                            </div>
-                                            <div className="mygames-game__info">
-                                                <span className="mygames-game__opponent">vs <AddressDisplay address={getOpponentAddress(game)} /></span>
-                                                <span className="mygames-game__time">{formatTime(game.creation_time)}</span>
-                                            </div>
-                                            <div className={`mygames-result ${getResultClass(game)}`}>
-                                                {getResultText(game)}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    </GlassCard>
-
-                    {/* Live Games (spectate) */}
+                    {/* Live Games (spectate) - always visible */}
                     <GlassCard accent>
                         <div className="mygames-section">
                             <h2 className="mygames-section__title">

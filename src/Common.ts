@@ -164,6 +164,76 @@ export interface PgnOptions {
   result?: string;
 }
 
+// Convert a single UCI move to SAN given a FEN position
+export function uciToSan(fen: string, uci: string): string {
+  try {
+    const chess = new Chess(fen);
+    const from = uci.slice(0, 2);
+    const to = uci.slice(2, 4);
+    const promotion = uci.length > 4 ? uci[4] : undefined;
+    const move = chess.move({ from, to, promotion });
+    return move ? move.san : uci;
+  } catch {
+    return uci;
+  }
+}
+
+// Convert multiple UCI moves to SAN starting from a FEN position
+export function uciLinesToSan(fen: string, uciMoves: string[], maxMoves?: number): string[] {
+  const result: string[] = [];
+  try {
+    const chess = new Chess(fen);
+    const limit = maxMoves ?? uciMoves.length;
+
+    for (let i = 0; i < Math.min(uciMoves.length, limit); i++) {
+      const uci = uciMoves[i];
+      const from = uci.slice(0, 2);
+      const to = uci.slice(2, 4);
+      const promotion = uci.length > 4 ? uci[4] : undefined;
+      const move = chess.move({ from, to, promotion });
+      if (move) {
+        result.push(move.san);
+      } else {
+        break;
+      }
+    }
+  } catch {
+    // Return what we have so far
+  }
+  return result;
+}
+
+// Format a line of SAN moves with move numbers
+export function formatSanLine(fen: string, sanMoves: string[]): string {
+  if (sanMoves.length === 0) return '';
+
+  // Get starting move number and side from FEN
+  const parts = fen.split(' ');
+  const sideToMove = parts[1] || 'w';
+  const fullMoveNumber = parseInt(parts[5] || '1');
+
+  let result = '';
+  let moveNum = fullMoveNumber;
+  let isWhiteToMove = sideToMove === 'w';
+
+  for (let i = 0; i < sanMoves.length; i++) {
+    if (isWhiteToMove) {
+      result += `${moveNum}. ${sanMoves[i]} `;
+    } else {
+      if (i === 0) {
+        // First move is black, show "1... Nf6" format
+        result += `${moveNum}... ${sanMoves[i]} `;
+      } else {
+        result += `${sanMoves[i]} `;
+      }
+      moveNum++;
+    }
+    isWhiteToMove = !isWhiteToMove;
+  }
+
+  return result.trim();
+}
+
 // Convert UCI move history to PGN format
 export function uciToPgn(uciMoves: string[], options?: PgnOptions): string {
   const chess = new Chess();

@@ -124,6 +124,38 @@
   transition: stroke 150ms ease;
 }
 
+/* Connect Button (when not connected) */
+.header-connect {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #f7b32b 0%, #d4941a 100%);
+  border: none;
+  border-radius: 100px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #0d0d0f;
+  cursor: pointer;
+  transition: all 150ms ease;
+  box-shadow: 0 2px 12px rgba(247, 179, 43, 0.3);
+}
+
+.header-connect:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(247, 179, 43, 0.4);
+}
+
+.header-connect:active {
+  transform: translateY(0);
+}
+
+.header-connect svg {
+  width: 16px;
+  height: 16px;
+  stroke: #0d0d0f;
+}
+
 /* Notification Bell */
 .header-notifications {
   display: flex;
@@ -330,6 +362,16 @@
   }
 
   .header-wallet svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .header-connect {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  .header-connect svg {
     width: 14px;
     height: 14px;
   }

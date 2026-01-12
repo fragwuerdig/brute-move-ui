@@ -33,6 +33,7 @@ export interface ChessGameState {
     reset: () => void;
     goToMove: (index: number) => void;
     setPosition: (fen: string) => void;
+    loadHistory: (fens: string[], moves: string[], startIndex?: number) => void;
 
     // PGN
     pgn: string;
@@ -150,6 +151,14 @@ export function useChessGame(options?: UseChessGameOptions): ChessGameState {
         setHistoryIndex(0);
     }, []);
 
+    // Load a complete game history (FENs and UCI moves)
+    const loadHistory = useCallback((fens: string[], moves: string[], startIndex?: number) => {
+        if (fens.length === 0) return;
+        setHistory(fens);
+        setMoveHistory(moves);
+        setHistoryIndex(startIndex ?? fens.length - 1);
+    }, []);
+
     // Generate PGN from move history
     const pgn = useMemo(() => {
         const pgnGame = new Chess();
@@ -186,6 +195,7 @@ export function useChessGame(options?: UseChessGameOptions): ChessGameState {
         reset,
         goToMove,
         setPosition,
+        loadHistory,
         pgn,
     };
 }

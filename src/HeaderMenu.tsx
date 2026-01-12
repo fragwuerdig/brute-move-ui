@@ -1,10 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 interface MenuItem {
     label: string;
-    path?: string;
-    onClick?: () => void;
+    path: string;
 }
 
 const MenuIcon = () => (
@@ -32,15 +31,15 @@ const ChevronIcon = ({ isOpen }: { isOpen: boolean }) => (
 
 const menuItems: MenuItem[] = [
     { label: 'Play', path: '/play' },
-    { label: 'My Games', path: '/my-games' },
+    { label: 'Games', path: '/games' },
     { label: 'Profile', path: '/profile' },
     { label: 'Leaderboard', path: '/leaderboard' },
+    { label: 'FAQ', path: '/faq' },
 ];
 
 function HeaderMenu() {
     const [isOpen, setIsOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
-    const navigate = useNavigate();
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -52,15 +51,6 @@ function HeaderMenu() {
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
-
-    const handleItemClick = (item: MenuItem) => {
-        if (item.path) {
-            navigate(item.path);
-        } else if (item.onClick) {
-            item.onClick();
-        }
-        setIsOpen(false);
-    };
 
     return (
         <div className="header-menu" ref={menuRef}>
@@ -78,13 +68,14 @@ function HeaderMenu() {
             {isOpen && (
                 <div className="header-menu__dropdown">
                     {menuItems.map((item, index) => (
-                        <button
+                        <Link
                             key={index}
+                            to={item.path}
                             className="header-menu__item"
-                            onClick={() => handleItemClick(item)}
+                            onClick={() => setIsOpen(false)}
                         >
                             {item.label}
-                        </button>
+                        </Link>
                     ))}
                 </div>
             )}

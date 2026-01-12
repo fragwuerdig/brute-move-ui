@@ -22,7 +22,7 @@ interface ModalState {
 function Create() {
     const [searchParams] = useSearchParams();
     const [color, setColor] = useState<ColorChoice>('Random');
-    const { connectedAddr, broadcast, chain } = useWallet();
+    const { connectedAddr, broadcast, chain, connect, connected } = useWallet();
     const { resolveAddress, searchByPrefix } = useNameService();
     const [modal, setModal] = useState<ModalState>({ open: false, message: '' });
 
@@ -232,6 +232,29 @@ function Create() {
             navigator.clipboard.writeText(modal.gameId);
         }
     };
+
+    // Not connected - show connect prompt
+    if (!connected) {
+        return (
+            <div className="create-container">
+                <div className="create-header">
+                    <h1 className="create-header__title">Create Challenge</h1>
+                    <p className="create-header__subtitle">Set your terms and stake your claim</p>
+                </div>
+                <GlassCard accent>
+                    <div className="create-section" style={{ textAlign: 'center', padding: '40px 20px' }}>
+                        <h2 className="create-section__title">Connect Wallet</h2>
+                        <p className="create-section__desc" style={{ marginBottom: '24px' }}>
+                            Connect your wallet to create a game challenge.
+                        </p>
+                        <button className="create-btn" onClick={connect}>
+                            Connect Wallet
+                        </button>
+                    </div>
+                </GlassCard>
+            </div>
+        );
+    }
 
     return (
         <div className="create-container">

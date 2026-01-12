@@ -15,6 +15,14 @@ const DisconnectIcon = () => (
     </svg>
 );
 
+const WalletIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
+        <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
+        <path d="M18 12a2 2 0 0 0 0 4h4v-4Z" />
+    </svg>
+);
+
 const BellIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
@@ -24,7 +32,7 @@ const BellIcon = () => (
 
 function Head({ children }: { children?: React.ReactNode }) {
     const navigate = useNavigate();
-    const { connected, connectedAddr, disconnect } = useWallet();
+    const { connected, connectedAddr, disconnect, connect } = useWallet();
 
     return (
         <div className="page-wrapper">
@@ -38,7 +46,7 @@ function Head({ children }: { children?: React.ReactNode }) {
                     </div>
                     <div className="header-nav">
                         <HeaderMenu />
-                        {connected && connectedAddr && (
+                        {connected && connectedAddr ? (
                             <>
                                 <a
                                     href={`https://t.me/${config.telegramBotUsername}?start=${connectedAddr}`}
@@ -54,6 +62,11 @@ function Head({ children }: { children?: React.ReactNode }) {
                                     <DisconnectIcon />
                                 </button>
                             </>
+                        ) : (
+                            <button className="header-connect" onClick={connect}>
+                                <WalletIcon />
+                                <span>Connect</span>
+                            </button>
                         )}
                     </div>
                 </div>

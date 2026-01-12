@@ -2,6 +2,7 @@ import { Chessboard } from "react-chessboard";
 import type { CustomSquareStyles } from "react-chessboard/dist/chessboard/types";
 import { type PieceSymbol, type Square, Chess } from "chess.js";
 import { useState, useRef, useEffect, useMemo } from "react";
+import { EvaluationBar } from '../EvaluationBar';
 import './ChessBoard.css';
 
 export type BoardMode = 'live' | 'exploration' | 'analysis';
@@ -39,6 +40,9 @@ export interface ChessBoardProps {
     onHistoryForward?: () => void;
     onHistoryStart?: () => void;
     onHistoryEnd?: () => void;
+
+    // Evaluation bar
+    evaluation?: { score: number; mate: number | null };
 }
 
 // Icons
@@ -162,6 +166,7 @@ export function ChessBoard({
     onHistoryForward,
     onHistoryStart,
     onHistoryEnd,
+    evaluation,
 }: ChessBoardProps) {
     const [selected, setSelected] = useState<string | null>(null);
     const [target, setTarget] = useState<string | null>(null);
@@ -188,21 +193,21 @@ export function ChessBoard({
         effectiveAllowedColor === currentTurn
     );
 
-    // Board width observer
+    // Board width observer - calculate board size from frame content
     useEffect(() => {
         const updateWidth = () => {
             const frame = frameRef.current;
-            if (frame) {
-                const style = getComputedStyle(frame);
-                const paddingLeft = parseFloat(style.paddingLeft);
-                const paddingRight = parseFloat(style.paddingRight);
-                const borderLeft = parseFloat(style.borderLeftWidth);
-                const borderRight = parseFloat(style.borderRightWidth);
-                const contentWidth = frame.offsetWidth - paddingLeft - paddingRight - borderLeft - borderRight;
+            if (!frame) return;
 
-                if (contentWidth > 0 && contentWidth !== boardWidth) {
-                    setBoardWidth(contentWidth);
-                }
+            const style = getComputedStyle(frame);
+            const paddingLeft = parseFloat(style.paddingLeft);
+            const paddingRight = parseFloat(style.paddingRight);
+            const borderLeft = parseFloat(style.borderLeftWidth);
+            const borderRight = parseFloat(style.borderRightWidth);
+
+            const contentWidth = frame.offsetWidth - paddingLeft - paddingRight - borderLeft - borderRight;
+            if (contentWidth > 0) {
+                setBoardWidth(contentWidth);
             }
         };
 
@@ -210,10 +215,10 @@ export function ChessBoard({
         if (frame) {
             const resizeObserver = new ResizeObserver(updateWidth);
             resizeObserver.observe(frame);
-            updateWidth();
+            requestAnimationFrame(updateWidth);
             return () => resizeObserver.disconnect();
         }
-    }, [boardWidth]);
+    }, []);
 
     // Clear selection when FEN changes
     useEffect(() => {
@@ -335,30 +340,52 @@ export function ChessBoard({
 
     return (
         <div className="board-container">
-            {/* Chess board */}
+
+            {/* Chess board frame */}
             <div className={frameClass} ref={frameRef}>
+                {/* Evaluation bar on the left - same height as board */}
                 {boardWidth && (
-                    <Chessboard
-                        position={fen || 'start'}
-                        arePiecesDraggable={false}
-                        boardOrientation={orientation}
-                        boardWidth={boardWidth}
-                        customBoardStyle={{
-                            borderRadius: '12px',
+                    <div
+                        className="board-frame__eval-wrapper"
+                        style={{
+                            height: boardWidth - 23,
+                            width: evaluation ? 16 : 0,
+                            marginRight: evaluation ? 8 : 0,
+                            opacity: evaluation ? 1 : 0,
                         }}
-                        customDarkSquareStyle={{
-                            backgroundColor: darkSquareColor
-                        }}
-                        customLightSquareStyle={{
-                            backgroundColor: lightSquareColor
-                        }}
-                        customSquareStyles={{
-                            ...parseIndicatorStyles(checkSquare, lastMove, mode),
-                            ...legalMoveStyles,
-                            ...(selected ? { [selected]: { backgroundColor: 'rgba(59, 130, 246, 0.5)' } } : {}),
-                        }}
-                        onSquareClick={onSquareClick}
-                    />
+                    >
+                        {evaluation && (
+                            <EvaluationBar
+                                value={evaluation.score}
+                                mate={evaluation.mate}
+                            />
+                        )}
+                    </div>
+                )}
+                {boardWidth && (
+                    <div>
+                        <Chessboard
+                            position={fen || 'start'}
+                            arePiecesDraggable={false}
+                            boardOrientation={orientation}
+                            boardWidth={boardWidth - 23}
+                            customBoardStyle={{
+                                borderRadius: '12px',
+                            }}
+                            customDarkSquareStyle={{
+                                backgroundColor: darkSquareColor
+                            }}
+                            customLightSquareStyle={{
+                                backgroundColor: lightSquareColor
+                            }}
+                            customSquareStyles={{
+                                ...parseIndicatorStyles(checkSquare, lastMove, mode),
+                                ...legalMoveStyles,
+                                ...(selected ? { [selected]: { backgroundColor: 'rgba(59, 130, 246, 0.5)' } } : {}),
+                            }}
+                            onSquareClick={onSquareClick}
+                        />
+                    </div>
                 )}
             </div>
 

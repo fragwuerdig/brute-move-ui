@@ -20,7 +20,7 @@ function JoinRoute() {
         console.log(data);
         if (data?.contract) {
           // game is already deployed -> forward
-          navigate(`/games/${data.contract}`, { replace: true });
+          navigate(`/game/${data.contract}`, { replace: true });
         } else {
           // still joinable, show join screen
           data.bet = parseInt(data.bet);
