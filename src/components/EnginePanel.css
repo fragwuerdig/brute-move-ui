@@ -46,14 +46,22 @@
   background: linear-gradient(135deg, rgba(76, 175, 80, 0.3) 0%, rgba(76, 175, 80, 0.15) 100%);
 }
 
+<<<<<<< HEAD
 /* Content Container - fills available space */
+=======
+/* Content Container - fixed height to prevent layout shifts */
+>>>>>>> main
 .engine-panel__content {
   display: flex;
   flex-direction: column;
   gap: 10px;
+<<<<<<< HEAD
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+=======
+  min-height: 180px;
+>>>>>>> main
 }
 
 /* Lines Container */

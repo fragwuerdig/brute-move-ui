@@ -53,7 +53,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
 
     // Auto-scroll to bottom when new messages arrive
     useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }, [chat.messages]);
 
     // Close pickers when clicking outside
