@@ -31,13 +31,15 @@
   height: clamp(300px, calc(100vh - 100px), 750px);
 }
 
-/* Move history fills available space */
+/* Move history hidden for now (empty) */
 .game-move-history {
+  display: none;
+}
+
+/* Chat panel fills available space in sidebar */
+.game-sidebar .chat-panel--expanded {
   flex: 1;
-  min-height: 0;
-  background: linear-gradient(145deg, #1e1f26 0%, #14151a 100%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
+  min-height: 200px;
 }
 
 /* Mobile turn indicator - hidden on desktop */
@@ -76,6 +78,17 @@
 
   .game-move-history {
     display: none;
+  }
+
+  /* Chat panel on mobile - show below action card */
+  .game-sidebar .chat-panel {
+    max-height: 250px;
+    order: 10; /* Push to end, after action card */
+  }
+
+  /* Action card stays in normal flow (before chat) */
+  .game-sidebar .action-card {
+    order: 5;
   }
 }
 
@@ -179,6 +192,10 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  /* Fill available sidebar space */
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .game-engine-toggle {
@@ -214,6 +231,9 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 /* Horizontal eval bar in sidebar */

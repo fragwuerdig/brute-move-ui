@@ -6,3 +6,6 @@ export type { UseOnChainGameOptions, OnChainGameState } from './useOnChainGame';
 
 export { useNameService, clearProfileCache, getProfileFromCache, subscribeToProfileUpdates } from './useNameService';
 export type { UseNameServiceOptions, NameServiceState, Profile } from './useNameService';
+
+export { useChatService } from './useChatService';
+export type { UseChatServiceOptions, ChatServiceState, ChatMessage } from './useChatService';
