@@ -42,7 +42,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         { text: 'Oops!', emoji: '😅' },
         { text: 'Thanks!', emoji: '🙏' },
         { text: 'Rematch?', emoji: '🔄' },
-        { Text: 'Check!', emoji: '♟️' },
+        { text: 'Check!', emoji: '♟️' },
         { text: 'Checkmate!', emoji: '👑' },
     ];
 
