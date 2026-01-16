@@ -30,7 +30,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
     const quickPhrasesRef = useRef<HTMLDivElement>(null);
 
     // Common emojis for chess games
-    const emojis = ['👍', '👎', '😀', '😂', '🤔', '😮', '😅', '🙈', '🔥', '💪', '👏', '🎉', '♟️', '👑', '💀', '😈'];
+    const emojis = ['👍', '👎', '😀', '😂', '🤔', '😮', '😅', '🙈', '🔥', '💪', '👏', '🎉', '♟️', '👑', '💀', '😈', '💥'];
 
     // Quick phrases for chess games
     const quickPhrases = [
