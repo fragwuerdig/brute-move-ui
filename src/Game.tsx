@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import type { Square } from 'react-chessboard/dist/chessboard/types';
 import { useWallet } from './WalletProvider';
 import { useOnChainGame } from './hooks/useOnChainGame';
@@ -7,6 +7,7 @@ import { useStockfish } from './hooks/useStockfish';
 import { useNameService } from './hooks';
 import { ChessBoard } from './components/ChessBoard';
 import { EnginePanel } from './components/EnginePanel';
+import { ChatPanel } from './components/ChatPanel';
 import TurnIndicator from './TurnIndicator';
 import { ActionCard } from './ActionCard';
 import { uciToPgn, addressEllipsis } from './Common';
@@ -25,7 +26,7 @@ interface PositionEval {
 }
 
 function Game({ gameAddress, variant }: GameProps) {
-    const { connectedAddr } = useWallet();
+    const { connectedAddr, chain } = useWallet();
     const [mode, setMode] = useState<'live' | 'exploration'>('live');
     const [engineEnabled, setEngineEnabled] = useState(false);
     const [offerDraw, setOfferDraw] = useState(false);
@@ -244,6 +245,32 @@ function Game({ gameAddress, variant }: GameProps) {
     // Check if settle button should show
     const showSettle = (onChain.gameInfo?.no_show || onChain.gameInfo?.timeout) && !onChain.gameInfo?.is_finished;
 
+    // Chat: determine if connected user is a player in this game
+    const isPlayerInGame = useMemo(() => {
+        if (!connectedAddr || !onChain.gameInfo?.players) return false;
+        return onChain.gameInfo.players.includes(connectedAddr);
+    }, [connectedAddr, onChain.gameInfo?.players]);
+
+    // Chat: get opponent address for the connected player
+    const opponentAddress = useMemo(() => {
+        if (!connectedAddr || !onChain.gameInfo?.players || onChain.gameInfo.players.length < 2) {
+            return undefined;
+        }
+        const [white, black] = onChain.gameInfo.players;
+        if (connectedAddr === white) return black;
+        if (connectedAddr === black) return white;
+        return undefined;
+    }, [connectedAddr, onChain.gameInfo?.players]);
+
+    // Chat: get opponent display name
+    const opponentDisplayName = useMemo(() => {
+        if (!opponentAddress || !onChain.gameInfo?.players) return undefined;
+        const [white, black] = onChain.gameInfo.players;
+        if (opponentAddress === white) return playerNames.white || undefined;
+        if (opponentAddress === black) return playerNames.black || undefined;
+        return undefined;
+    }, [opponentAddress, onChain.gameInfo?.players, playerNames]);
+
     if (variant !== 'compact') {
         return <div className="game-container" />;
     }
@@ -319,6 +346,16 @@ function Game({ gameAddress, variant }: GameProps) {
 
                 {/* Move history - content will be added later */}
                 <div className="game-move-history" />
+
+                {/* Chat Panel - only show if connected user is a player and not in exploration mode */}
+                {isPlayerInGame && connectedAddr && opponentAddress && !isExploration && (
+                    <ChatPanel
+                        myAddress={connectedAddr}
+                        peerAddress={opponentAddress}
+                        chainId={chain.chainId}
+                        peerDisplayName={opponentDisplayName}
+                    />
+                )}
 
                 {/* Engine Panel (exploration mode only, and only for finished games) */}
                 {isExploration && onChain.gameInfo?.is_finished && (
