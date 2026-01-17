@@ -1,23 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useChatService, type ChatMessage } from '../hooks/useChatService';
+import { useChatContext } from '../hooks/ChatContext';
+import type { ChatMessage } from '../hooks/useChatService';
 import { addressEllipsis } from '../Common';
 import './ChatPanel.css';
 
 interface ChatPanelProps {
-    /** Current user's terra address */
-    myAddress: string;
-    /** Opponent's terra address */
-    peerAddress: string;
-    /** Chain ID for signing */
-    chainId: string;
     /** Optional display name for the peer */
     peerDisplayName?: string;
 }
 
 export const ChatPanel: React.FC<ChatPanelProps> = ({
-    myAddress,
-    peerAddress,
-    chainId,
     peerDisplayName,
 }) => {
     const [inputValue, setInputValue] = useState('');
@@ -46,12 +38,8 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         { text: 'Checkmate!', emoji: '👑' },
     ];
 
-    const chat = useChatService({
-        myAddress,
-        peerAddress,
-        chainId,
-        enabled: true,
-    });
+    // Get chat from context (connection is maintained by ChatProvider)
+    const { myAddress, peerAddress, ...chat } = useChatContext();
 
     // Auto-scroll to bottom when new messages arrive
     useEffect(() => {
@@ -142,7 +130,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         }
     };
 
-    const peerLabel = peerDisplayName || addressEllipsis(peerAddress);
+    const peerLabel = peerDisplayName || (peerAddress ? addressEllipsis(peerAddress) : 'Opponent');
 
     const isDisconnected = chat.status === 'disconnected';
     const isConnecting = chat.status === 'authenticating' || chat.status === 'connecting';

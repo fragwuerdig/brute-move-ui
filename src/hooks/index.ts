@@ -9,3 +9,5 @@ export type { UseNameServiceOptions, NameServiceState, Profile } from './useName
 
 export { useChatService } from './useChatService';
 export type { UseChatServiceOptions, ChatServiceState, ChatMessage } from './useChatService';
+
+export { ChatProvider, useChatContext } from './ChatContext';
