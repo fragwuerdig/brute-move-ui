@@ -4,7 +4,7 @@ import { useWallet } from './WalletProvider';
 import { useOnChainGame } from './hooks/useOnChainGame';
 import { useChessGame } from './hooks/useChessGame';
 import { useStockfish } from './hooks/useStockfish';
-import { useNameService } from './hooks';
+import { useNameService, ChatProvider } from './hooks';
 import { ChessBoard } from './components/ChessBoard';
 import { EnginePanel } from './components/EnginePanel';
 import { ChatPanel } from './components/ChatPanel';
@@ -276,6 +276,12 @@ function Game({ gameAddress, variant }: GameProps) {
     }
 
     return (
+        <ChatProvider
+            myAddress={connectedAddr}
+            peerAddress={opponentAddress}
+            chainId={chain.chainId}
+            enabled={isPlayerInGame && !!connectedAddr && !!opponentAddress}
+        >
         <div className="game-container">
             {/* Mobile Turn Indicator - above board */}
             <div className="game-mobile-turn">
@@ -349,12 +355,7 @@ function Game({ gameAddress, variant }: GameProps) {
 
                 {/* Chat Panel - only show if connected user is a player and not in exploration mode */}
                 {isPlayerInGame && connectedAddr && opponentAddress && !isExploration && (
-                    <ChatPanel
-                        myAddress={connectedAddr}
-                        peerAddress={opponentAddress}
-                        chainId={chain.chainId}
-                        peerDisplayName={opponentDisplayName}
-                    />
+                    <ChatPanel peerDisplayName={opponentDisplayName} />
                 )}
 
                 {/* Engine Panel (exploration mode only, and only for finished games) */}
@@ -415,6 +416,7 @@ function Game({ gameAddress, variant }: GameProps) {
                 </div>
             )}
         </div>
+        </ChatProvider>
     );
 }
 
