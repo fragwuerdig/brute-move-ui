@@ -1,4 +1,4 @@
-import React, { createContext, useContext, type ReactNode } from 'react';
+import { createContext, useContext, type ReactNode } from 'react';
 import { useChatService, type ChatServiceState, type UseChatServiceOptions } from './useChatService';
 
 // Extended state that includes address info for the UI
