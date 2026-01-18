@@ -182,19 +182,21 @@ function Create() {
     const handleCreate = () => {
         if (!connectedAddr) return;
 
+        const betUluna = betAmount * 1000000;
         const msg = {
             create_joinable_game: {
+                bet: betUluna.toString(),
                 with_color: color === 'Random' ? null : color,
                 recipient: recipient || null,
             }
         };
-        const bet = (betAmount * 1000000 + feeUluna).toString();
+        const fundsAmount = (betUluna + feeUluna).toString();
         const tx: UnsignedTx = {
             msgs: [
                 new MsgExecuteContract({
                     sender: connectedAddr,
                     contract: getFactoryAddr(chain),
-                    funds: [{ denom: 'uluna', amount: bet }],
+                    funds: [{ denom: 'uluna', amount: fundsAmount }],
                     msg
                 }),
             ],
