@@ -3,6 +3,7 @@ import type { CustomSquareStyles } from "react-chessboard/dist/chessboard/types"
 import { type PieceSymbol, type Square, Chess } from "chess.js";
 import { useState, useRef, useEffect, useMemo } from "react";
 import { EvaluationBar } from '../EvaluationBar';
+import { getCapturedPieces, type PieceType } from '../../Common';
 import './ChessBoard.css';
 
 export type BoardMode = 'live' | 'exploration' | 'analysis';
@@ -43,6 +44,9 @@ export interface ChessBoardProps {
 
     // Evaluation bar
     evaluation?: { score: number; mate: number | null };
+
+    // UCI move history for captured pieces indicator
+    uciMoves?: string[];
 }
 
 // Icons
@@ -167,6 +171,7 @@ export function ChessBoard({
     onHistoryStart,
     onHistoryEnd,
     evaluation,
+    uciMoves = [],
 }: ChessBoardProps) {
     const [selected, setSelected] = useState<string | null>(null);
     const [target, setTarget] = useState<string | null>(null);
@@ -338,6 +343,41 @@ export function ChessBoard({
         return getLegalMoveStyles(fen, selected as Square, hasPiece);
     }, [fen, selected]);
 
+    // Captured pieces calculation
+    const captured = useMemo(() => {
+        return getCapturedPieces(fen, uciMoves);
+    }, [fen, uciMoves]);
+
+    // Piece symbols for display - use filled symbols for both, color via CSS
+    const pieceSymbols: Record<PieceType, string> = {
+        q: '♛',
+        r: '♜',
+        b: '♝',
+        n: '♞',
+        p: '♟',
+    };
+
+    // Render captured pieces for one side
+    const renderCapturedPieces = (side: 'white' | 'black') => {
+        const pieces = captured[side];
+        const pieceColor = side === 'white' ? 'black' : 'white'; // white captures black pieces
+        const order: PieceType[] = ['q', 'r', 'b', 'n', 'p'];
+        
+        return order.map(piece => {
+            const count = pieces[piece];
+            if (count === 0) return null;
+            return (
+                <span key={piece} className="captured-piece-group">
+                    {Array.from({ length: count }, (_, i) => (
+                        <span key={i} className={`captured-piece captured-piece--${pieceColor}`}>
+                            {pieceSymbols[piece]}
+                        </span>
+                    ))}
+                </span>
+            );
+        });
+    };
+
     return (
         <div className="board-container">
 
@@ -389,37 +429,41 @@ export function ChessBoard({
                 )}
             </div>
 
-            {/* History navigation for live mode */}
+            {/* History navigation for live mode - with captured pieces */}
             {showHistoryNav && (
                 <div className="board-history-nav">
-                    <button
-                        className="board-nav-btn"
-                        onClick={onHistoryStart}
-                        disabled={!canGoBack}
-                        title="Go to start"
-                    >
-                        <ChevronsLeftIcon />
-                    </button>
-                    <button
-                        className="board-nav-btn"
-                        onClick={onHistoryBack}
-                        disabled={!canGoBack}
-                        title="Previous move"
-                    >
-                        <ChevronLeftIcon />
-                    </button>
-                    <span className="board-history-indicator">
-                        {historyIndex !== undefined ? historyIndex : 0} / {(historyLength ?? 1) - 1}
-                    </span>
-                    <button
-                        className="board-nav-btn"
-                        onClick={onHistoryForward}
-                        disabled={!canGoForward}
-                        title="Next move"
-                    >
-                        <ChevronRightIcon />
-                    </button>
-                    <button
+                    <div className="captured-pieces-row captured-pieces-row--white">
+                        {renderCapturedPieces('white')}
+                    </div>
+                    <div className="board-history-controls">
+                        <button
+                            className="board-nav-btn"
+                            onClick={onHistoryStart}
+                            disabled={!canGoBack}
+                            title="Go to start"
+                        >
+                            <ChevronsLeftIcon />
+                        </button>
+                        <button
+                            className="board-nav-btn"
+                            onClick={onHistoryBack}
+                            disabled={!canGoBack}
+                            title="Previous move"
+                        >
+                            <ChevronLeftIcon />
+                        </button>
+                        <span className="board-history-indicator">
+                            {historyIndex !== undefined ? historyIndex : 0} / {(historyLength ?? 1) - 1}
+                        </span>
+                        <button
+                            className="board-nav-btn"
+                            onClick={onHistoryForward}
+                            disabled={!canGoForward}
+                            title="Next move"
+                        >
+                            <ChevronRightIcon />
+                        </button>
+                        <button
                         className="board-nav-btn"
                         onClick={onHistoryEnd}
                         disabled={!canGoForward}
@@ -427,49 +471,61 @@ export function ChessBoard({
                     >
                         <ChevronsRightIcon />
                     </button>
+                    </div>
+                    <div className="captured-pieces-row captured-pieces-row--black">
+                        {renderCapturedPieces('black')}
+                    </div>
                 </div>
             )}
 
             {/* Exploration/Analysis controls */}
             {showControls && (
                 <div className="board-controls">
-                    <button
-                        className="board-control-btn"
-                        onClick={onUndo}
-                        disabled={!canUndo}
-                        title="Undo"
-                    >
-                        <UndoIcon />
-                        <span>Undo</span>
-                    </button>
-                    <button
-                        className="board-control-btn"
-                        onClick={onRedo}
-                        disabled={!canRedo}
-                        title="Redo"
-                    >
-                        <RedoIcon />
-                        <span>Redo</span>
-                    </button>
-                    <button
-                        className="board-control-btn"
-                        onClick={onReset}
-                        disabled={!canUndo}
-                        title="Reset"
-                    >
-                        <ResetIcon />
-                        <span>Reset</span>
-                    </button>
-                    {onExit && (
+                    <div className="captured-pieces-row captured-pieces-row--white">
+                        {renderCapturedPieces('white')}
+                    </div>
+                    <div className="board-controls-buttons">
                         <button
-                            className="board-control-btn board-control-btn--exit"
-                            onClick={onExit}
-                            title="Exit"
+                            className="board-control-btn"
+                            onClick={onUndo}
+                            disabled={!canUndo}
+                            title="Undo"
                         >
-                            <ExitIcon />
-                            <span>Exit</span>
+                            <UndoIcon />
+                            <span>Undo</span>
                         </button>
-                    )}
+                        <button
+                            className="board-control-btn"
+                            onClick={onRedo}
+                            disabled={!canRedo}
+                            title="Redo"
+                        >
+                            <RedoIcon />
+                            <span>Redo</span>
+                        </button>
+                        <button
+                            className="board-control-btn"
+                            onClick={onReset}
+                            disabled={!canUndo}
+                            title="Reset"
+                        >
+                            <ResetIcon />
+                            <span>Reset</span>
+                        </button>
+                        {onExit && (
+                            <button
+                                className="board-control-btn board-control-btn--exit"
+                                onClick={onExit}
+                                title="Exit"
+                            >
+                                <ExitIcon />
+                                <span>Exit</span>
+                            </button>
+                        )}
+                    </div>
+                    <div className="captured-pieces-row captured-pieces-row--black">
+                        {renderCapturedPieces('black')}
+                    </div>
                 </div>
             )}
 
