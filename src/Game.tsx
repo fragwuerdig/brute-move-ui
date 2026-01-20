@@ -311,6 +311,10 @@ function Game({ gameAddress, variant }: GameProps) {
                     checkSquare={(isExploration ? localGame.checkSquare : onChain.checkSquare) || undefined}
                     lastMove={(isExploration ? localGame.lastMove : onChain.lastMove) || undefined}
                     onMove={isExploration ? handleExplorationMove : handleLiveMove}
+                    // UCI move history for captured pieces (sliced to current position)
+                    uciMoves={isExploration 
+                        ? localGame.moveHistory.slice(0, localGame.historyIndex) 
+                        : onChain.history.slice(0, onChain.historyIndex + 1)}
                     // Exploration controls
                     showControls={isExploration}
                     onUndo={localGame.undo}

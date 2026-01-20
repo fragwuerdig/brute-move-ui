@@ -262,3 +262,124 @@ export function uciToPgn(uciMoves: string[], options?: PgnOptions): string {
 
   return headers.join('\n') + '\n\n' + movesOnly;
 }
+
+// Piece types for captured pieces calculation
+export type PieceType = 'p' | 'n' | 'b' | 'r' | 'q';
+
+export interface CapturedPieces {
+  white: Record<PieceType, number>;  // Pieces captured BY white (i.e., black pieces lost)
+  black: Record<PieceType, number>;  // Pieces captured BY black (i.e., white pieces lost)
+}
+
+// Initial piece counts per side (excluding king)
+const INITIAL_PIECES: Record<PieceType, number> = {
+  p: 8,
+  n: 2,
+  b: 2,
+  r: 2,
+  q: 1,
+};
+
+/**
+ * Count promotions from UCI move history for each color.
+ * White moves are at even indices (0, 2, 4...), black at odd indices (1, 3, 5...).
+ * A promotion move has 5 characters, e.g., "e7e8q" where the 5th char is the promoted piece.
+ */
+function countPromotions(uciMoves: string[]): {
+  white: Record<PieceType, number>;
+  black: Record<PieceType, number>;
+} {
+  const result = {
+    white: { p: 0, n: 0, b: 0, r: 0, q: 0 },
+    black: { p: 0, n: 0, b: 0, r: 0, q: 0 },
+  };
+
+  for (let i = 0; i < uciMoves.length; i++) {
+    const move = uciMoves[i];
+    if (move.length === 5) {
+      const promotedTo = move[4].toLowerCase() as PieceType;
+      if (promotedTo in result.white) {
+        const side = i % 2 === 0 ? 'white' : 'black';
+        result[side][promotedTo]++;
+      }
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Count pieces on board from FEN for each color.
+ */
+function countPiecesOnBoard(fen: string): {
+  white: Record<PieceType, number>;
+  black: Record<PieceType, number>;
+} {
+  const result = {
+    white: { p: 0, n: 0, b: 0, r: 0, q: 0 },
+    black: { p: 0, n: 0, b: 0, r: 0, q: 0 },
+  };
+
+  // Extract board part of FEN (before first space)
+  const board = fen.split(' ')[0];
+
+  for (const char of board) {
+    if (char === '/' || /\d/.test(char)) continue;
+
+    const piece = char.toLowerCase() as PieceType;
+    if (piece in result.white) {
+      const side = char === char.toUpperCase() ? 'white' : 'black';
+      result[side][piece]++;
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Calculate captured pieces for each side based on current FEN and move history.
+ * 
+ * The algorithm:
+ * - captured = initial + promoted_to_this_piece - current_on_board
+ * - Pawns are special: they can only be captured, not promoted TO
+ *   so captured_pawns = initial(8) - current - promotions_made
+ * 
+ * @param fen Current board position in FEN format
+ * @param uciMoves Move history in UCI format (e.g., ["e2e4", "e7e5", ...])
+ * @returns Captured pieces for each side
+ */
+export function getCapturedPieces(fen: string, uciMoves: string[]): CapturedPieces {
+  const promotions = countPromotions(uciMoves);
+  const onBoard = countPiecesOnBoard(fen);
+
+  const captured: CapturedPieces = {
+    white: { p: 0, n: 0, b: 0, r: 0, q: 0 },
+    black: { p: 0, n: 0, b: 0, r: 0, q: 0 },
+  };
+
+  // White captures black pieces, black captures white pieces
+  for (const piece of ['n', 'b', 'r', 'q'] as PieceType[]) {
+    // Black pieces captured by white = initial black + black promotions to piece - current black
+    captured.white[piece] = INITIAL_PIECES[piece] + promotions.black[piece] - onBoard.black[piece];
+    // White pieces captured by black = initial white + white promotions to piece - current white
+    captured.black[piece] = INITIAL_PIECES[piece] + promotions.white[piece] - onBoard.white[piece];
+  }
+
+  // Pawns: captured = initial - current - promotions_made (promotions consume pawns)
+  const whitePawnPromotions = promotions.white.n + promotions.white.b + promotions.white.r + promotions.white.q;
+  const blackPawnPromotions = promotions.black.n + promotions.black.b + promotions.black.r + promotions.black.q;
+
+  // Black pawns captured by white
+  captured.white.p = INITIAL_PIECES.p - onBoard.black.p - blackPawnPromotions;
+  // White pawns captured by black
+  captured.black.p = INITIAL_PIECES.p - onBoard.white.p - whitePawnPromotions;
+
+  // Clamp to 0 (shouldn't be negative, but just in case)
+  for (const side of ['white', 'black'] as const) {
+    for (const piece of ['p', 'n', 'b', 'r', 'q'] as PieceType[]) {
+      captured[side][piece] = Math.max(0, captured[side][piece]);
+    }
+  }
+
+  return captured;
+}
