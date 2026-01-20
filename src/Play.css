@@ -159,6 +159,20 @@
   gap: 4px;
 }
 
+.play-game__challenger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.play-game__label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b6e7b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 .play-game__bet-value {
   font-size: 18px;
   font-weight: 700;

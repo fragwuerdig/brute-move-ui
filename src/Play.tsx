@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { fetchContractStateSmart, getFactoryAddr, type JoinableGame } from './Common';
 import { useWallet } from './WalletProvider';
 import { GlassCard } from './GlassCard';
+import { AddressDisplay } from './components/AddressDisplay';
 import './Play.css';
 
 type PeriodOption = {
@@ -139,6 +140,10 @@ function Play() {
                                 {games.map((game) => (
                                     <div key={game.id} className="play-game">
                                         <div className="play-game__info">
+                                            <div className="play-game__challenger">
+                                                <span className="play-game__label">by</span>
+                                                <AddressDisplay address={game.opponent} />
+                                            </div>
                                             <div className="play-game__bet">
                                                 <span className="play-game__bet-value">{formatBet(game.bet)}</span>
                                                 <span className="play-game__bet-label">LUNC</span>
