@@ -64,33 +64,58 @@ const Toast: React.FC<{ status: ToastStatus }> = ({ status }) => {
   );
 };
 
-const Modal: React.FC<{ onSelect: (type: WalletType) => void, connecting: boolean }> = ({ onSelect, connecting }) => {
+const Modal: React.FC<{ onSelect: (type: WalletType) => void; connecting: boolean; onClose: () => void }> = ({ onSelect, connecting, onClose }) => {
   return createPortal(
-    <div style={{
-      position: "fixed",
-      top: 0,
-      left: 0,
-      width: "100vw",
-      height: "100vh",
-      backgroundColor: "rgba(0,0,0,0.85)",
-      backdropFilter: "blur(8px)",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      zIndex: 1001,
-    }}>
-      <div style={{
-        background: "linear-gradient(145deg, #1e1f26 0%, #14151a 100%)",
-        border: "1px solid rgba(255, 255, 255, 0.1)",
-        padding: 32,
-        borderRadius: 20,
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        width: "100vw",
+        height: "100vh",
+        backgroundColor: "rgba(0,0,0,0.85)",
+        backdropFilter: "blur(8px)",
         display: "flex",
-        flexDirection: "column",
-        gap: 16,
-        minWidth: 280,
-        textAlign: "center",
-        boxShadow: "0 20px 60px rgba(0, 0, 0, 0.6)",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 1001,
       }}>
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          position: "relative",
+          background: "linear-gradient(145deg, #1e1f26 0%, #14151a 100%)",
+          border: "1px solid rgba(255, 255, 255, 0.1)",
+          padding: 32,
+          borderRadius: 20,
+          display: "flex",
+          flexDirection: "column",
+          gap: 16,
+          minWidth: 280,
+          textAlign: "center",
+          boxShadow: "0 20px 60px rgba(0, 0, 0, 0.6)",
+        }}>
+        <button
+          aria-label="Close wallet selection"
+          onClick={onClose}
+          style={{
+            position: "absolute",
+            top: 12,
+            right: 12,
+            border: "none",
+            background: "rgba(255, 255, 255, 0.08)",
+            color: "#d0d3de",
+            width: 28,
+            height: 28,
+            borderRadius: 8,
+            cursor: "pointer",
+            fontSize: 18,
+            lineHeight: "18px",
+          }}
+        >
+          ×
+        </button>
         {connecting ? (
           <div style={{ color: "#a0a3b1", fontSize: 15 }}>Connecting...</div>
         ) : (
@@ -250,7 +275,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
     <WalletContext.Provider value={value}>
       { toastStatus && <Toast status={toastStatus} /> }
       {children}
-      {showModal && <Modal onSelect={handleSelect} connecting={connecting} />}
+      {showModal && <Modal onSelect={handleSelect} connecting={connecting} onClose={() => setShowModal(false)} />}
     </WalletContext.Provider>
   );
 };
