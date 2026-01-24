@@ -190,7 +190,13 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
 
   const handleSelect = useCallback(async (type: WalletType) => {
     setConnecting(true);
-    controller.connect(type, [chain]).then((wallets) => {
+    const connectPromise = (async () => {
+      if (type === WalletType.EXTENSION) {
+        await ensureChainAddedKeplr(chain.chainId);
+      }
+      return controller.connect(type, [chain]);
+    })();
+    connectPromise.then((wallets) => {
       console.log("Wallets after connect: ", wallets);
       localStorage.setItem(STORAGE_KEY, type);
       setWallet(wallets.get(chain.chainId));
@@ -206,7 +212,6 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
   }, [chain, controller]);
 
   const connect = useCallback(async () => {
-    await ensureChainAddedKeplr(chain.chainId);
     setShowModal(true);
   }, []);
 
