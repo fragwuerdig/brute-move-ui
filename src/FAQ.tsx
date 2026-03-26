@@ -66,7 +66,7 @@ const faqItems: FAQItem[] = [
     },
     {
         question: "What game categories are there?",
-        answer: "Currently, BruteMove only supports daily games with a reset time control. This means the move clock runs for at least 24 hours, and after a player makes a move, the timeout resets to the initial value (24 hours). Other time controls exist in chess, such as live games where players have a global clock for all their moves that counts down during their turn. Additional game categories will be added to the platform soon."
+        answer: "BruteMove supports two modes: Daily (per-move reset clock) and Live (classical clock with increment). Use the Daily/Live selector in the header to switch which mode the UI is showing."
     },
     {
         question: "Will BruteMove! offer tournaments?",

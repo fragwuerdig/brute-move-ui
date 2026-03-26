@@ -1,4 +1,5 @@
 import { AddressDisplay } from './components/AddressDisplay';
+import { useGameMode } from './GameModeContext';
 import './Leaderboard.css';
 
 interface LeaderboardEntry {
@@ -12,10 +13,14 @@ interface LeaderboardProps {
 }
 
 function Leaderboard({ entries, currentUser }: LeaderboardProps) {
+    const { mode } = useGameMode();
     return (
         <div className="leaderboard">
             <div className="leaderboard__header">
-                <h2 className="leaderboard__title">Leaderboard</h2>
+                <h2 className="leaderboard__title">
+                    Leaderboard
+                    <span className={`mode-badge mode-badge--${mode}`}>{mode}</span>
+                </h2>
             </div>
             <div className="leaderboard__table">
                 <div className="leaderboard__row leaderboard__row--header">

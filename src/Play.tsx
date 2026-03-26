@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchContractStateSmart, getFactoryAddr, type JoinableGame } from './Common';
 import { useWallet } from './WalletProvider';
+import { useGameMode } from './GameModeContext';
 import { GlassCard } from './GlassCard';
 import { AddressDisplay } from './components/AddressDisplay';
 import './Play.css';
@@ -21,6 +22,7 @@ const PERIOD_OPTIONS: PeriodOption[] = [
 function Play() {
     const navigate = useNavigate();
     const { chain, connectedAddr, connect, connected } = useWallet();
+    const { mode } = useGameMode();
     const [games, setGames] = useState<JoinableGame[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -39,7 +41,7 @@ function Play() {
             }
         };
 
-        fetchContractStateSmart(getFactoryAddr(chain), query, chain)
+        fetchContractStateSmart(getFactoryAddr(chain, mode), query, chain)
             .then((data: JoinableGame[]) => {
                 // Filter out:
                 // - games created by the current user
@@ -59,7 +61,7 @@ function Play() {
             .finally(() => {
                 setLoading(false);
             });
-    }, [chain, connectedAddr, period]);
+    }, [chain, connectedAddr, period, mode]);
 
     const handleJoinGame = (gameId: string) => {
         navigate(`/join/${gameId}`);
@@ -82,7 +84,10 @@ function Play() {
     return (
         <div className="play-container">
             <div className="play-header">
-                <h1 className="play-header__title">Quick Play</h1>
+                <h1 className="play-header__title">
+                    Quick Play
+                    <span className={`mode-badge mode-badge--${mode}`}>{mode}</span>
+                </h1>
                 <p className="play-header__subtitle">Find an open game and jump right in</p>
                 <div className="play-period-filter">
                     {PERIOD_OPTIONS.map((option) => (

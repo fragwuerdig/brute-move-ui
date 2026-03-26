@@ -1,5 +1,6 @@
 import { fetchBankBalance, fetchContractStateSmart, getFactoryAddr, type JoinableGame } from './Common';
 import { useWallet } from './WalletProvider';
+import { useGameMode } from './GameModeContext';
 import { useEffect, useState } from 'react';
 import type { UnsignedTx } from '@goblinhunt/cosmes/wallet';
 import { MsgExecuteContract } from '@goblinhunt/cosmes/client';
@@ -23,6 +24,7 @@ interface ModalState {
 
 function Join({ game }: JoinProps) {
   const { connectedAddr, chain, broadcast, connect, connected } = useWallet();
+  const { mode } = useGameMode();
   const [color, setColor] = useState<ColorChoice>('Random');
   const [modal, setModal] = useState<ModalState>({ open: false, message: '', closable: true });
   const [balance, setBalance] = useState<number | null>(null);
@@ -38,14 +40,14 @@ function Join({ game }: JoinProps) {
 
   useEffect(() => {
     if (!game || !chain) return;
-    fetchContractStateSmart(getFactoryAddr(chain), { joinable_game: { id: game.id } }, chain)
+    fetchContractStateSmart(getFactoryAddr(chain, mode), { joinable_game: { id: game.id } }, chain)
       .then((data) => {
         if (data?.contract) {
           navigate(`/game/${data.contract}`, { replace: true });
         }
       })
       .catch(() => { });
-  }, [connectedAddr, game, chain, navigate, refresh]);
+  }, [connectedAddr, game, chain, navigate, refresh, mode]);
 
   useEffect(() => {
     if (!connectedAddr || !chain) return;
@@ -83,7 +85,7 @@ function Join({ game }: JoinProps) {
       msgs: [
         new MsgExecuteContract({
           sender: connectedAddr,
-          contract: getFactoryAddr(chain),
+          contract: getFactoryAddr(chain, mode),
           funds: [],
           msg
         }),
@@ -115,7 +117,7 @@ function Join({ game }: JoinProps) {
       msgs: [
         new MsgExecuteContract({
           sender: connectedAddr,
-          contract: getFactoryAddr(chain),
+          contract: getFactoryAddr(chain, mode),
           funds: [{ amount: (game.bet + game.fee).toString(), denom: 'uluna' }],
           msg
         }),
@@ -133,7 +135,7 @@ function Join({ game }: JoinProps) {
           const storedGames = JSON.parse(localStorage.getItem(STORE_KEY_SAVED_GAMES) || "[]") as SavedGame[];
           storedGames.push({ address: gameAddr, name: `Game ${game.id}` });
           localStorage.setItem(STORE_KEY_SAVED_GAMES, JSON.stringify(storedGames));
-          navigate(`/game/${gameAddr}`);
+          navigate(`/game/${gameAddr}?joinId=${game.id}`);
         }
       })
       .catch((error) => {
@@ -161,7 +163,10 @@ function Join({ game }: JoinProps) {
     <div className="join-container">
       {/* Header */}
       <div className="join-header">
-        <h1 className="join-header__title">Join Challenge</h1>
+        <h1 className="join-header__title">
+          Join Challenge
+          <span className={`mode-badge mode-badge--${mode}`}>{mode}</span>
+        </h1>
         <p className="join-header__subtitle">Accept this chess challenge</p>
       </div>
 

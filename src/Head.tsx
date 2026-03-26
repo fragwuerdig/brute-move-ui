@@ -1,10 +1,13 @@
-import { useNavigate } from "react-router-dom";
+import { useCallback, useEffect, useMemo } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useWallet } from "./WalletProvider";
 import { AddressDisplay } from "./components/AddressDisplay";
 import { config } from "./config";
+import { isModeAvailable } from "./Common";
 import HeaderMenu from "./HeaderMenu";
 import Footer from "./Footer";
 import pawnLogo from "./assets/pawn.png";
+import { useGameMode } from "./GameModeContext";
 import './Head.css';
 
 const DisconnectIcon = () => (
@@ -32,7 +35,29 @@ const BellIcon = () => (
 
 function Head({ children }: { children?: React.ReactNode }) {
     const navigate = useNavigate();
-    const { connected, connectedAddr, disconnect, connect } = useWallet();
+    const location = useLocation();
+    const { connected, connectedAddr, disconnect, connect, chain } = useWallet();
+    const { mode, setMode } = useGameMode();
+    const liveAvailable = chain ? isModeAvailable(chain, 'live') : false;
+    const joinIdFromGame = useMemo(() => {
+        if (!location.pathname.startsWith('/game/')) return null;
+        const value = new URLSearchParams(location.search).get('joinId');
+        return value && value.trim() ? value : null;
+    }, [location.pathname, location.search]);
+
+    useEffect(() => {
+        if (mode === 'live' && !liveAvailable) {
+            setMode('daily');
+        }
+    }, [mode, liveAvailable, setMode]);
+
+    const handleModeSwitch = useCallback((next: 'daily' | 'live') => {
+        if (next === mode) return;
+        setMode(next);
+        if (joinIdFromGame) {
+            navigate(`/join/${joinIdFromGame}`);
+        }
+    }, [mode, setMode, joinIdFromGame, navigate]);
 
     return (
         <div className="page-wrapper">
@@ -45,6 +70,23 @@ function Head({ children }: { children?: React.ReactNode }) {
                         </span>
                     </div>
                     <div className="header-nav">
+                        <div className="header-mode-toggle" role="group" aria-label="Game mode">
+                            <button
+                                className={`header-mode-btn ${mode === 'daily' ? 'header-mode-btn--active' : ''}`}
+                                onClick={() => handleModeSwitch('daily')}
+                                aria-pressed={mode === 'daily'}
+                            >
+                                Daily
+                            </button>
+                            <button
+                                className={`header-mode-btn ${mode === 'live' ? 'header-mode-btn--active' : ''}`}
+                                onClick={() => handleModeSwitch('live')}
+                                aria-pressed={mode === 'live'}
+                                disabled={!liveAvailable}
+                            >
+                                Live
+                            </button>
+                        </div>
                         <HeaderMenu />
                         {connected && connectedAddr ? (
                             <>

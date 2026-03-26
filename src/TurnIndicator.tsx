@@ -9,6 +9,7 @@ interface TurnIndicatorProps {
     variant?: 'default' | 'compact';
     activeTurn?: 'white' | 'black';
     secLeft?: number;
+    remainingTimes?: [number, number];
     timeoutVariant: 'no-show' | 'turn';
     gameTimedOut?: 'no-show' | 'turn';
     gameFinished?: boolean;
@@ -18,6 +19,7 @@ interface TurnIndicatorProps {
 const TurnIndicator: React.FC<TurnIndicatorProps> = ({
     activeTurn,
     secLeft,
+    remainingTimes,
     timeoutVariant,
     players,
     player,
@@ -26,11 +28,31 @@ const TurnIndicator: React.FC<TurnIndicatorProps> = ({
     winner
 }) => {
     const [seconds, setSeconds] = useState(secLeft || 0);
-    const [formattedTime, setFormattedTime] = useState('00:00');
+    const [playerSeconds, setPlayerSeconds] = useState<[number, number]>(remainingTimes || [0, 0]);
+
+    const formatClock = (totalSeconds: number): string => {
+        const safe = Math.max(0, totalSeconds);
+        const days = Math.floor(safe / 86400);
+        const rest = safe % 86400;
+        const hours = Math.floor(rest / 3600);
+        const mins = Math.floor((rest % 3600) / 60);
+        const secs = rest % 60;
+
+        if (days > 0) {
+            return `${days}d ${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+        }
+        return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    };
 
     useEffect(() => {
         setSeconds(secLeft || 0);
     }, [secLeft]);
+
+    useEffect(() => {
+        if (remainingTimes) {
+            setPlayerSeconds([remainingTimes[0], remainingTimes[1]]);
+        }
+    }, [remainingTimes]);
 
     useEffect(() => {
         if (seconds <= 0) return;
@@ -41,18 +63,26 @@ const TurnIndicator: React.FC<TurnIndicatorProps> = ({
     }, [seconds]);
 
     useEffect(() => {
-        const mins = Math.floor(seconds / 60);
-        const secs = seconds % 60;
-        setFormattedTime(
-            `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
-        );
-    }, [seconds]);
+        if (gameFinished || gameTimedOut || timeoutVariant === 'no-show') return;
+        if (!activeTurn) return;
+
+        const timer = setInterval(() => {
+            setPlayerSeconds(prev => {
+                const idx = activeTurn === 'white' ? 0 : 1;
+                const next: [number, number] = [prev[0], prev[1]];
+                next[idx] = Math.max(0, next[idx] - 1);
+                return next;
+            });
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, [activeTurn, gameFinished, gameTimedOut, timeoutVariant]);
 
     const getTimerClass = () => {
         if (gameFinished) return 'timer-badge--finished';
         if (gameTimedOut) return 'timer-badge--timeout';
-        if (seconds <= 30) return 'timer-badge--danger';
-        if (seconds <= 120) return 'timer-badge--warning';
+        if (seconds <= 60) return 'timer-badge--danger';
+        if (seconds <= 300) return 'timer-badge--warning';
         return '';
     };
 
@@ -70,7 +100,7 @@ const TurnIndicator: React.FC<TurnIndicatorProps> = ({
         }
         return {
             label: timeoutVariant === 'no-show' ? 'No-Show' : 'Move',
-            time: formattedTime
+            time: formatClock(seconds)
         };
     };
 
@@ -81,6 +111,13 @@ const TurnIndicator: React.FC<TurnIndicatorProps> = ({
     };
 
     const isYou = (index: number) => players.length > index && players[index] === player;
+    const showPlayerClocks = timeoutVariant !== 'no-show' && !gameFinished && !gameTimedOut;
+    const getPlayerClockClass = (index: number) => {
+        const s = playerSeconds[index] || 0;
+        if (s <= 60) return 'player-time--danger';
+        if (s <= 300) return 'player-time--warning';
+        return '';
+    };
 
     const timerContent = getTimerContent();
 
@@ -94,6 +131,11 @@ const TurnIndicator: React.FC<TurnIndicatorProps> = ({
                         <span className={`player-name ${activeTurn === 'white' ? 'player-name--active' : ''} ${isYou(0) ? 'player-name--you' : ''}`}>
                             {getPlayerName(0)}
                         </span>
+                        {showPlayerClocks && (
+                            <span className={`player-time ${getPlayerClockClass(0)}`}>
+                                {formatClock(playerSeconds[0] || 0)}
+                            </span>
+                        )}
                     </div>
 
                     <span className="vs-divider">vs</span>
@@ -104,6 +146,11 @@ const TurnIndicator: React.FC<TurnIndicatorProps> = ({
                         <span className={`player-name ${activeTurn === 'black' ? 'player-name--active' : ''} ${isYou(1) ? 'player-name--you' : ''}`}>
                             {getPlayerName(1)}
                         </span>
+                        {showPlayerClocks && (
+                            <span className={`player-time ${getPlayerClockClass(1)}`}>
+                                {formatClock(playerSeconds[1] || 0)}
+                            </span>
+                        )}
                     </div>
                 </div>
 

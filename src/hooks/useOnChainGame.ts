@@ -114,11 +114,16 @@ function calculateTimeLeft(gameInfo: GameInfo | null): { type: 'no-show' | 'turn
     }
 
     const now = Math.floor(Date.now() / 1000);
+    const turnIndex = gameInfo.turn === 'white' ? 0 : 1;
 
     if (gameInfo.fullmoves === 0 || gameInfo.fullmoves === 1) {
         const seconds = gameInfo.game_start_timeout + gameInfo.created - now;
         return { type: 'no-show', seconds: Math.max(0, seconds) };
     } else {
+        if (gameInfo.remaining_times && gameInfo.remaining_times.length === 2) {
+            const seconds = gameInfo.remaining_times[turnIndex];
+            return { type: 'turn', seconds: Math.max(0, seconds) };
+        }
         const seconds = gameInfo.move_timeout + gameInfo.last_move_time - now;
         return { type: 'turn', seconds: Math.max(0, seconds) };
     }
@@ -246,12 +251,24 @@ export function useOnChainGame({ gameAddress }: UseOnChainGameOptions): OnChainG
                 const data = await fetchContractStateSmart(gameAddress, { game_info: {} }, chain);
                 if (!mounted) return;
 
-                if (data && data.board) {
+                const isValidGameInfo = Boolean(
+                    data &&
+                    typeof data.board === 'string' &&
+                    Array.isArray(data.players) &&
+                    data.players.length === 2 &&
+                    (data.turn === 'white' || data.turn === 'black')
+                );
+
+                if (isValidGameInfo) {
                     setGameInfo(data);
                     setError(null);
+                } else {
+                    setGameInfo(null);
+                    setError(new Error('Invalid game_info response'));
                 }
             } catch (e) {
                 if (mounted) {
+                    setGameInfo(null);
                     setError(e as Error);
                 }
             } finally {

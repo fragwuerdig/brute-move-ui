@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App.tsx'
 import { WalletProvider } from './WalletProvider.tsx'
+import { GameModeProvider } from './GameModeContext.tsx'
 import './Main.css'
 
 const CHAINS = {
@@ -17,7 +18,9 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
       <WalletProvider chain={chain}>
-        <App />
+        <GameModeProvider>
+          <App />
+        </GameModeProvider>
       </WalletProvider>
     </BrowserRouter>
   </StrictMode>,

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { fetchContractStateSmart, getGameDbAddr, getFactoryAddr, type JoinableGame } from './Common';
+import { fetchContractStateSmart, getGameDbAddr, getFactoryAddr, getModeForFactory, isModeAvailable, type JoinableGame } from './Common';
 import { useWallet } from './WalletProvider';
+import { useGameMode } from './GameModeContext';
 import { GlassCard } from './GlassCard';
 import { AddressDisplay } from './components/AddressDisplay';
 import { MsgExecuteContract } from '@goblinhunt/cosmes/client';
@@ -23,6 +24,8 @@ interface GameRecord {
 function MyGames() {
     const navigate = useNavigate();
     const { chain, connectedAddr, broadcast, connect, connected } = useWallet();
+    const { mode } = useGameMode();
+    const hasGameDb = !!(chain && getGameDbAddr(chain));
 
     const [myOngoingGames, setMyOngoingGames] = useState<GameRecord[]>([]);
     const [myFinishedGames, setMyFinishedGames] = useState<GameRecord[]>([]);
@@ -44,30 +47,49 @@ function MyGames() {
 
             try {
                 const gameDbAddr = getGameDbAddr(chain);
-                const factoryAddr = getFactoryAddr(chain);
+                const factoryAddr = getFactoryAddr(chain, mode);
+                const dailyFactory = getFactoryAddr(chain, 'daily');
+                const liveFactory = isModeAvailable(chain, 'live') ? getFactoryAddr(chain, 'live') : '';
+                const factories = [dailyFactory, liveFactory].filter(Boolean);
 
-                // Fetch other ongoing games (by factory) - available to all users
-                const otherGames = await fetchContractStateSmart(
-                    gameDbAddr,
-                    { games_by_factory: { factory: factoryAddr, is_ongoing: true, limit: 20 } },
-                    chain
-                );
+                let otherGames: GameRecord[] = [];
+                if (gameDbAddr) {
+                    // Fetch other ongoing games (by factory) - available to all users
+                    const results = await Promise.all(
+                        factories.map((factory) =>
+                            fetchContractStateSmart(
+                                gameDbAddr,
+                                { games_by_factory: { factory, is_ongoing: true, limit: 20 } },
+                                chain
+                            ).catch(() => [])
+                        )
+                    );
+                    otherGames = results.flat().filter((g) => g);
+                }
 
                 // Only fetch user-specific data if connected
                 if (connectedAddr) {
-                    // Fetch user's ongoing games
-                    const myOngoing = await fetchContractStateSmart(
-                        gameDbAddr,
-                        { games_by_player: { player: connectedAddr, is_ongoing: true, limit: 50 } },
-                        chain
-                    );
+                    let myOngoing: GameRecord[] = [];
+                    let myFinished: GameRecord[] = [];
 
-                    // Fetch user's finished games
-                    const myFinished = await fetchContractStateSmart(
-                        gameDbAddr,
-                        { games_by_player: { player: connectedAddr, is_ongoing: false, limit: 20 } },
-                        chain
-                    );
+                    if (gameDbAddr) {
+                        // Fetch user's ongoing games
+                        const ongoing = await fetchContractStateSmart(
+                            gameDbAddr,
+                            { games_by_player: { player: connectedAddr, is_ongoing: true, limit: 50 } },
+                            chain
+                        );
+
+                        // Fetch user's finished games
+                        const finished = await fetchContractStateSmart(
+                            gameDbAddr,
+                            { games_by_player: { player: connectedAddr, is_ongoing: false, limit: 20 } },
+                            chain
+                        );
+
+                        myOngoing = Array.isArray(ongoing) ? ongoing : [];
+                        myFinished = Array.isArray(finished) ? finished : [];
+                    }
 
                     // Fetch user's open challenges (joinable games)
                     const allJoinable = await fetchContractStateSmart(
@@ -102,14 +124,14 @@ function MyGames() {
                         ? sentChallengesData.filter((g: JoinableGame) => !g.contract)
                         : [];
 
-                    setMyOngoingGames(Array.isArray(myOngoing) ? myOngoing : []);
-                    setMyFinishedGames(Array.isArray(myFinished) ? myFinished : []);
+                    setMyOngoingGames(myOngoing);
+                    setMyFinishedGames(myFinished);
                     setMyChallenges(myOpenChallenges);
                     setMySentChallenges(mySentDirectedChallenges);
                     setIncomingChallenges(myIncomingChallenges);
 
                     // Filter out user's own games from "other" list
-                    const filteredOther = (Array.isArray(otherGames) ? otherGames : []).filter(
+                    const filteredOther = otherGames.filter(
                         (game: GameRecord) => game.player_white !== connectedAddr && game.player_black !== connectedAddr
                     );
                     setOtherOngoingGames(filteredOther);
@@ -120,7 +142,7 @@ function MyGames() {
                     setMyChallenges([]);
                     setMySentChallenges([]);
                     setIncomingChallenges([]);
-                    setOtherOngoingGames(Array.isArray(otherGames) ? otherGames : []);
+                    setOtherOngoingGames(otherGames);
                 }
 
             } catch (err) {
@@ -132,7 +154,7 @@ function MyGames() {
         };
 
         fetchGames();
-    }, [chain, connectedAddr, refreshTrigger]);
+    }, [chain, connectedAddr, refreshTrigger, mode]);
 
     const handleOpenGame = (gameAddress: string) => {
         navigate(`/game/${gameAddress}`);
@@ -149,7 +171,7 @@ function MyGames() {
                 msgs: [
                     new MsgExecuteContract({
                         sender: connectedAddr,
-                        contract: getFactoryAddr(chain),
+                        contract: getFactoryAddr(chain, mode),
                         funds: [],
                         msg
                     }),
@@ -205,7 +227,10 @@ function MyGames() {
     return (
         <div className="mygames-container">
             <div className="mygames-header">
-                <h1 className="mygames-header__title">Games</h1>
+                <h1 className="mygames-header__title">
+                    Games
+                    <span className={`mode-badge mode-badge--${mode}`}>{mode}</span>
+                </h1>
                 <p className="mygames-header__subtitle">Track ongoing and past games</p>
             </div>
 
@@ -308,7 +333,11 @@ function MyGames() {
                                     <h2 className="mygames-section__title">
                                         Ongoing Games
                                     </h2>
-                                    {myOngoingGames.length === 0 ? (
+                                    {!hasGameDb ? (
+                                        <div className="mygames-empty">
+                                            <p>Game history is unavailable right now.</p>
+                                        </div>
+                                    ) : myOngoingGames.length === 0 ? (
                                         <div className="mygames-empty">
                                             <p>No ongoing games</p>
                                             <button
@@ -329,15 +358,18 @@ function MyGames() {
                                                     <div className="mygames-game__color">
                                                         <span className={`mygames-dot mygames-dot--${getMyColor(game)}`} />
                                                     </div>
-                                                    <div className="mygames-game__info">
-                                                        <span className="mygames-game__opponent">vs <AddressDisplay address={getOpponentAddress(game)} /></span>
-                                                        <span className="mygames-game__time">{formatTime(game.creation_time)}</span>
-                                                    </div>
-                                                    <div className="mygames-game__action">
-                                                        <span className="mygames-arrow">→</span>
-                                                    </div>
+                                                <div className="mygames-game__info">
+                                                    <span className="mygames-game__opponent">vs <AddressDisplay address={getOpponentAddress(game)} /></span>
+                                                    <span className="mygames-game__time">{formatTime(game.creation_time)}</span>
                                                 </div>
-                                            ))}
+                                                {chain && getModeForFactory(chain, game.factory_address) && (
+                                                    <span className={`mode-badge mode-badge--${getModeForFactory(chain, game.factory_address)}`}>{getModeForFactory(chain, game.factory_address)}</span>
+                                                )}
+                                                <div className="mygames-game__action">
+                                                    <span className="mygames-arrow">→</span>
+                                                </div>
+                                            </div>
+                                        ))}
                                         </div>
                                     )}
                                 </div>
@@ -349,7 +381,11 @@ function MyGames() {
                                     <h2 className="mygames-section__title">
                                         Game History
                                     </h2>
-                                    {myFinishedGames.length === 0 ? (
+                                    {!hasGameDb ? (
+                                        <div className="mygames-empty">
+                                            <p>Game history is unavailable right now.</p>
+                                        </div>
+                                    ) : myFinishedGames.length === 0 ? (
                                         <div className="mygames-empty">
                                             <p>No completed games yet</p>
                                         </div>
@@ -364,15 +400,18 @@ function MyGames() {
                                                     <div className="mygames-game__color">
                                                         <span className={`mygames-dot mygames-dot--${getMyColor(game)}`} />
                                                     </div>
-                                                    <div className="mygames-game__info">
-                                                        <span className="mygames-game__opponent">vs <AddressDisplay address={getOpponentAddress(game)} /></span>
-                                                        <span className="mygames-game__time">{formatTime(game.creation_time)}</span>
-                                                    </div>
-                                                    <div className={`mygames-result ${getResultClass(game)}`}>
-                                                        {getResultText(game)}
-                                                    </div>
+                                                <div className="mygames-game__info">
+                                                    <span className="mygames-game__opponent">vs <AddressDisplay address={getOpponentAddress(game)} /></span>
+                                                    <span className="mygames-game__time">{formatTime(game.creation_time)}</span>
                                                 </div>
-                                            ))}
+                                                {chain && getModeForFactory(chain, game.factory_address) && (
+                                                    <span className={`mode-badge mode-badge--${getModeForFactory(chain, game.factory_address)}`}>{getModeForFactory(chain, game.factory_address)}</span>
+                                                )}
+                                                <div className={`mygames-result ${getResultClass(game)}`}>
+                                                    {getResultText(game)}
+                                                </div>
+                                            </div>
+                                        ))}
                                         </div>
                                     )}
                                 </div>
@@ -403,7 +442,11 @@ function MyGames() {
                                 Live Games
                             </h2>
                             <p className="mygames-section__desc">Watch ongoing games from other players</p>
-                            {otherOngoingGames.length === 0 ? (
+                            {!hasGameDb ? (
+                                <div className="mygames-empty">
+                                    <p>Game browser is unavailable right now.</p>
+                                </div>
+                            ) : otherOngoingGames.length === 0 ? (
                                 <div className="mygames-empty">
                                     <p>No live games right now</p>
                                 </div>
@@ -426,6 +469,9 @@ function MyGames() {
                                                 </span>
                                                 <span className="mygames-game__time">{formatTime(game.creation_time)}</span>
                                             </div>
+                                            {chain && getModeForFactory(chain, game.factory_address) && (
+                                                <span className={`mode-badge mode-badge--${getModeForFactory(chain, game.factory_address)}`}>{getModeForFactory(chain, game.factory_address)}</span>
+                                            )}
                                             <div className="mygames-game__action">
                                                 <span className="mygames-watch">Watch</span>
                                             </div>
