@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from "react-router-dom";
 import { fetchContractStateSmart, getFactoryAddr, type JoinableGame } from './Common';
 import { useWallet } from './WalletProvider';
+import { useGameMode } from './GameModeContext';
 import { GlassCard } from './GlassCard';
 import { Input } from './Input';
 import './Home.css';
@@ -31,6 +32,7 @@ const ArrowRightIcon = () => (
 const Home: React.FC = () => {
     const navigate = useNavigate();
     const { chain } = useWallet();
+    const { mode } = useGameMode();
 
     const [gameIdSearch, setGameIdSearch] = useState<string>("");
     const [joinableGameId, setJoinableGameId] = useState<string>("");
@@ -47,7 +49,7 @@ const Home: React.FC = () => {
         }
 
         setIsSearching(true);
-        fetchContractStateSmart(getFactoryAddr(chain), { joinable_game: { id: searchTerm.toLowerCase() } }, chain)
+        fetchContractStateSmart(getFactoryAddr(chain, mode), { joinable_game: { id: searchTerm.toLowerCase() } }, chain)
             .then((data: JoinableGame) => {
                 if (data && data.id) {
                     setIsValidGame(true);
@@ -74,7 +76,10 @@ const Home: React.FC = () => {
         <div className="home-container">
             {/* Hero */}
             <div className="home-hero">
-                <h1 className="home-hero__title">Play Chess On-Chain</h1>
+                <h1 className="home-hero__title">
+                    Play Chess On-Chain
+                    <span className={`mode-badge mode-badge--${mode}`}>{mode}</span>
+                </h1>
                 <p className="home-hero__subtitle">Stake, play, and win on Terra Classic</p>
                 <span className="home-hero__faq-text">Have questions? <Link to="/faq" className="home-hero__faq-link">Check our FAQ!</Link></span>
             </div>
@@ -82,14 +87,17 @@ const Home: React.FC = () => {
             {/* Quick Play Card */}
             <GlassCard accent className="home-quickplay">
                 <div className="home-quickplay__content">
-                    <h2 className="home-quickplay__title">Quick Play</h2>
+                    <h2 className="home-quickplay__title">
+                        Quick Play
+                        <span className={`mode-badge mode-badge--${mode}`}>{mode}</span>
+                    </h2>
                     <p className="home-quickplay__desc">Find an open game and jump right in</p>
                     <div className="home-quickplay__buttons">
                         <button className="home-btn home-btn--play" onClick={() => navigate('/play')}>
-                            Play
+                            {mode === 'live' ? 'Play Live' : 'Play Daily'}
                         </button>
                         <button className="home-btn home-btn--secondary" onClick={() => navigate('/games')}>
-                            Games
+                            {mode === 'live' ? 'Live Games' : 'Daily Games'}
                         </button>
                     </div>
                 </div>
@@ -98,7 +106,10 @@ const Home: React.FC = () => {
             {/* Main Card */}
             <GlassCard accent>
                 <div className="home-search">
-                    <h2 className="home-search__title">Join a Game</h2>
+                    <h2 className="home-search__title">
+                        Join a Game
+                        <span className={`mode-badge mode-badge--${mode}`}>{mode}</span>
+                    </h2>
                     <div className="home-search__row">
                         <div className="home-search__input">
                             <Input
@@ -116,14 +127,14 @@ const Home: React.FC = () => {
                         onClick={() => navigate('/create')}
                     >
                         <PlusIcon />
-                        Create Game
+                        {mode === 'live' ? 'Create Live' : 'Create Daily'}
                     </button>
                     <button
                         className="home-btn home-btn--primary"
                         onClick={() => navigate(`/join/${joinableGameId}`)}
                         disabled={!isValidGame || isSearching}
                     >
-                        Join Game
+                        {mode === 'live' ? 'Join Live' : 'Join Daily'}
                         <ArrowRightIcon />
                     </button>
                 </div>

@@ -117,6 +117,28 @@
   font-weight: 700;
 }
 
+.player-time {
+  margin-left: auto;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: #c7cad6;
+  white-space: nowrap;
+}
+
+.player-info--reverse .player-time {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+.player-time--warning {
+  color: #f59e0b;
+}
+
+.player-time--danger {
+  color: #ef4444;
+}
+
 /* VS Divider */
 .vs-divider {
   color: #6b6e7b;
@@ -222,6 +244,11 @@
 
 .game-sidebar .player-info--reverse {
   flex-direction: row;
+}
+
+.game-sidebar .player-info--reverse .player-time {
+  margin-right: 0;
+  margin-left: auto;
 }
 
 .game-sidebar .vs-divider {

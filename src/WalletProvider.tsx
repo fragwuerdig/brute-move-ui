@@ -222,7 +222,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
 
   useEffect(() => {
     const storedType = localStorage.getItem(STORAGE_KEY) as WalletType | null;
-    if (storedType === WalletType.EXTENSION || storedType === WalletType.WALLETCONNECT) {
+    if (storedType === WalletType.EXTENSION) {
       setConnecting(true);
       controller.connect(storedType, [chain])
         .then(wallets => {

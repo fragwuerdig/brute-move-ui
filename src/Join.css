@@ -21,6 +21,10 @@
   font-weight: 700;
   color: #ffffff;
   margin: 0 0 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
 }
 
 .join-header__subtitle {

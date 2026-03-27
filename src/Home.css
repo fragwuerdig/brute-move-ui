@@ -21,6 +21,10 @@
   font-weight: 700;
   color: #ffffff;
   margin: 0 0 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
 }
 
 .home-hero__subtitle {
@@ -61,6 +65,9 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .home-quickplay__desc {
@@ -104,6 +111,9 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .home-search__row {

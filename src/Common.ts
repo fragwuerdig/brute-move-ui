@@ -1,15 +1,68 @@
 import type { ChainInfo } from "@goblinhunt/cosmes/wallet";
 import { Chess } from 'chess.js';
 
-const REBEL_FACTORY = 'terra1epal6ev4pas762cun685kh36qdtd9u9um0yd3u0r22x39u43dhessteue6';
-const REBEL_LEADERBOARD = 'terra1lshuhtqfh25zlalgm9zy529vvpdljp9kdmzsx6t9wn64766aqq3s5ttfyh';
-const REBEL_GAMEDB = 'terra183e9ul80dss0q708vwzjr364sm39elcuuyduld7fnry8t8n4vr9sr7x87m';
-const REBEL_NAMESERVICE = 'terra1c3ws7g7uw3njju7jyj04qq80zdw4zzdu0rclmuce7feg37pnzhsqcfphl6';
+export type GameMode = 'daily' | 'live';
 
-const COLUMBUS_FACTORY = 'terra1y9xqqe7tfekmjvumt5d5guapvrged0dq0e0v9z7afm80z4wpkujqszy3cw';
-const COLUMBUS_LEADERBOARD = 'terra1ej2fmakaq24qxh3fttxn3uma9l3j0y9elyp85ecft2rktpejvtgsyau2mj';
-const COLUMBUS_GAMEDB = 'terra1tuae4mshuu3fna25j25k4anyv9dz7qcyqntlmvd9ewprztq5m0hsd6erl9';
+type AddressConfig = {
+  factory: string;
+  leaderboard: string;
+  gamedb: string | null;
+};
+
+const ADDRESS_BOOK: Record<string, Record<GameMode, AddressConfig>> = {
+  'rebel-2': {
+    daily: {
+      factory: 'terra1epal6ev4pas762cun685kh36qdtd9u9um0yd3u0r22x39u43dhessteue6',
+      leaderboard: 'terra1lshuhtqfh25zlalgm9zy529vvpdljp9kdmzsx6t9wn64766aqq3s5ttfyh',
+      gamedb: 'terra183e9ul80dss0q708vwzjr364sm39elcuuyduld7fnry8t8n4vr9sr7x87m',
+    },
+    live: {
+      factory: 'terra1vavvr59tkeeqwh3wp8qnde64kfd28d7pju6rvxu9hax7maezkwuqrsla2p',
+      leaderboard: 'terra182xp4lmd902jsknhn6wwddskuszjkhnucal87sc3k5qsp008cdpqxj58v6',
+      gamedb: 'terra183e9ul80dss0q708vwzjr364sm39elcuuyduld7fnry8t8n4vr9sr7x87m',
+    },
+  },
+  'columbus-5': {
+    daily: {
+      factory: 'terra1y9xqqe7tfekmjvumt5d5guapvrged0dq0e0v9z7afm80z4wpkujqszy3cw',
+      leaderboard: 'terra1ej2fmakaq24qxh3fttxn3uma9l3j0y9elyp85ecft2rktpejvtgsyau2mj',
+      gamedb: 'terra1tuae4mshuu3fna25j25k4anyv9dz7qcyqntlmvd9ewprztq5m0hsd6erl9',
+    },
+    live: {
+      factory: 'terra1fr6ky9psf7ffumvs8y48edv5y7uunsdl52c8f4epj3muy5slp9gqh3gteg',
+      leaderboard: 'terra1w7rgrdzlrs9xssrwmjf25ktum308ftnxluvzr97my4vngj7r2jkskhsfwx',
+      gamedb: 'terra1tuae4mshuu3fna25j25k4anyv9dz7qcyqntlmvd9ewprztq5m0hsd6erl9',
+    },
+  },
+};
+
+const REBEL_NAMESERVICE = 'terra1c3ws7g7uw3njju7jyj04qq80zdw4zzdu0rclmuce7feg37pnzhsqcfphl6';
 const COLUMBUS_NAMESERVICE = 'terra1xttfedej46ajg63ruvgfx2trpqxpq542tzpedmc5kauv87kds80sy68qpk';
+
+function getAddressConfig(chain: ChainInfo<string>, mode: GameMode): AddressConfig {
+  const chainConfig = ADDRESS_BOOK[chain.chainId];
+  if (!chainConfig) {
+    throw new Error(`Unsupported chain: ${chain.chainId}`);
+  }
+  const config = chainConfig[mode];
+  if (!config) {
+    throw new Error(`Unsupported game mode: ${mode}`);
+  }
+  return config;
+}
+
+function requireAddress(value: string, label: string): string {
+  if (!value) {
+    console.warn(`Missing ${label} address`);
+    return '';
+  }
+  return value;
+}
+
+export function isModeAvailable(chain: ChainInfo<string>, mode: GameMode): boolean {
+  const config = getAddressConfig(chain, mode);
+  return Boolean(config.factory && config.leaderboard);
+}
 
 export function addressEllipsis(address: string): string {
   const parts = address.split('1');
@@ -19,6 +72,9 @@ export function addressEllipsis(address: string): string {
 }
 
 export function fetchContractStateSmart(gameAddress: string, query: any, chain: ChainInfo<string>): Promise<any> {
+  if (!gameAddress) {
+    return Promise.reject(new Error('Missing contract address'));
+  }
 
   let queryBase64 = btoa(JSON.stringify(query));
   let url = `${getLcdUrl(chain)}/cosmwasm/wasm/v1/contract/${gameAddress}/smart/${queryBase64}`;
@@ -54,41 +110,28 @@ export function fetchBankBalance(address: string, denom: string, chain: ChainInf
 
 }
 
-export function getFactoryAddr(chain: ChainInfo<string>) {
-
-  if ( chain.chainId === 'rebel-2' ) {
-    return REBEL_FACTORY;
-  } else if ( chain.chainId === 'columbus-5') {
-    return COLUMBUS_FACTORY;
-  }
-
-  throw new Error
-
+export function getFactoryAddr(chain: ChainInfo<string>, mode: GameMode) {
+  const config = getAddressConfig(chain, mode);
+  return requireAddress(config.factory, `${chain.chainId} ${mode} factory`);
 }
 
-export function getLeaderboardAddr(chain: ChainInfo<string>) {
-
-  if ( chain.chainId === 'rebel-2' ) {
-    return REBEL_LEADERBOARD;
-  } else if ( chain.chainId === 'columbus-5') {
-    return COLUMBUS_LEADERBOARD;
-  }
-
-  throw new Error
-
+export function getLeaderboardAddr(chain: ChainInfo<string>, mode: GameMode) {
+  const config = getAddressConfig(chain, mode);
+  return requireAddress(config.leaderboard, `${chain.chainId} ${mode} leaderboard`);
 }
 
 export function getGameDbAddr(chain: ChainInfo<string>) {
+  const config = getAddressConfig(chain, 'daily');
+  return config.gamedb;
+}
 
-  if ( chain.chainId === 'rebel-2' ) {
-    return REBEL_GAMEDB;
-  }
-  else if ( chain.chainId === 'columbus-5') {
-    return COLUMBUS_GAMEDB;
-  }
-
-  throw new Error
-
+export function getModeForFactory(chain: ChainInfo<string>, factoryAddr: string): GameMode | null {
+  if (!factoryAddr) return null;
+  const daily = getAddressConfig(chain, 'daily').factory;
+  const live = getAddressConfig(chain, 'live').factory;
+  if (factoryAddr === daily) return 'daily';
+  if (factoryAddr === live) return 'live';
+  return null;
 }
 
 export function getNameServiceAddr(chain: ChainInfo<string>) {
@@ -128,6 +171,10 @@ export function getLcdUrl(chain: ChainInfo<string>) {
   
 }
 
+export type TimeControl =
+  | { daily: { per_move: number } }
+  | { classical: { initial_time: number; increment: number } };
+
 export interface GameInfo {
   board: string;
   players: string[];
@@ -141,6 +188,8 @@ export interface GameInfo {
   last_move_time: number;
   move_timeout: number; // in seconds
   game_start_timeout: number; // in seconds
+  time_control?: TimeControl;
+  remaining_times?: [number, number];
   open_draw_offer: string | null;
 }
 
@@ -150,6 +199,7 @@ export interface JoinableGame {
   opponent: string,
   recipient: string | null,
   create_time: number,
+  move_timeout?: number,
   bet: number,
   fee: number,
   contract?: string,

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Leaderboard from './Leaderboard';
 import { useWallet } from './WalletProvider';
 import { fetchContractStateSmart, getLeaderboardAddr } from './Common';
+import { useGameMode } from './GameModeContext';
 import './LeaderboardPage.css';
 
 interface LeaderboardEntry {
@@ -22,6 +23,7 @@ const BackIcon = () => (
 function LeaderboardPage() {
     const navigate = useNavigate();
     const { connectedAddr, chain } = useWallet();
+    const { mode } = useGameMode();
     const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
     const [loading, setLoading] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
@@ -39,7 +41,7 @@ function LeaderboardPage() {
             setError(null);
 
             const data: [string, number][] = await fetchContractStateSmart(
-                getLeaderboardAddr(chain),
+                getLeaderboardAddr(chain, mode),
                 { leaderboard: { page: pageNum, per_page: PER_PAGE } },
                 chain
             );
@@ -65,7 +67,7 @@ function LeaderboardPage() {
 
     useEffect(() => {
         fetchPage(0);
-    }, [chain]);
+    }, [chain, mode]);
 
     const handleLoadMore = () => {
         if (!loadingMore && hasMore) {

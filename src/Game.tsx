@@ -11,6 +11,8 @@ import { ChatPanel } from './components/ChatPanel';
 import TurnIndicator from './TurnIndicator';
 import { ActionCard } from './ActionCard';
 import { uciToPgn, addressEllipsis } from './Common';
+import { GameNotFound } from './components/GameNotFound';
+import { GlassCard } from './GlassCard';
 import './Game.css';
 
 interface GameProps {
@@ -271,6 +273,24 @@ function Game({ gameAddress, variant }: GameProps) {
         return undefined;
     }, [opponentAddress, onChain.gameInfo?.players, playerNames]);
 
+    if (onChain.isLoading && !onChain.gameInfo && !onChain.error) {
+        return (
+            <div className="game-not-found">
+                <GlassCard accent>
+                    <div className="game-not-found__content">
+                        <p className="game-not-found__title">Loading game...</p>
+                    </div>
+                </GlassCard>
+            </div>
+        );
+    }
+
+    if (onChain.error || (!onChain.isLoading && !onChain.gameInfo)) {
+        return (
+            <GameNotFound subtitle="This game contract could not be loaded or is not a valid BruteMove! game." />
+        );
+    }
+
     if (variant !== 'compact') {
         return <div className="game-container" />;
     }
@@ -290,6 +310,7 @@ function Game({ gameAddress, variant }: GameProps) {
                     timeoutVariant={onChain.timeLeft.type}
                     activeTurn={onChain.gameInfo?.turn || undefined}
                     secLeft={onChain.timeLeft.seconds}
+                    remainingTimes={onChain.gameInfo?.remaining_times}
                     players={onChain.gameInfo?.players || []}
                     player={connectedAddr}
                     gameFinished={onChain.gameInfo?.is_finished || false}
@@ -345,6 +366,7 @@ function Game({ gameAddress, variant }: GameProps) {
                     timeoutVariant={onChain.timeLeft.type}
                     activeTurn={onChain.gameInfo?.turn || undefined}
                     secLeft={onChain.timeLeft.seconds}
+                    remainingTimes={onChain.gameInfo?.remaining_times}
                     players={onChain.gameInfo?.players || []}
                     player={connectedAddr}
                     gameFinished={onChain.gameInfo?.is_finished || false}

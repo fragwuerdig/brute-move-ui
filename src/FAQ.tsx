@@ -10,11 +10,11 @@ interface FAQItem {
 const faqItems: FAQItem[] = [
     {
         question: "What is BruteMove?",
-        answer: "BruteMove is an on-chain chess platform built on Terra Classic. It allows players to stake LUNC tokens on chess games, with all moves verified by smart contracts on the blockchain."
+        answer: "BruteMove is an on-chain chess platform built on Terra Classic. You can play wagered chess in multiple game modes, and all moves are validated by smart contracts."
     },
     {
         question: "How do I start playing?",
-        answer: "Connect your Terra Classic wallet, then either create a new game challenge or join an existing one from the Play page. You'll need some LUNC tokens to stake on games and pay gas fees to make moves."
+        answer: "Connect your wallet, choose a mode (Daily or Live) in the header, then create a challenge or join one from Play. You need LUNC for your wager and normal transaction gas."
     },
     {
         question: "What wallets are supported?",
@@ -30,11 +30,11 @@ const faqItems: FAQItem[] = [
     },
     {
         question: "What does no-show mean?",
-        answer: "A no-show occurs when a player never makes their first move within the specified no-show timeout period. In such cases, the other player can claim draw by settling the game. This mechanism is more like a conceptual decision. The games devs wanted to make sure a game can only be won or lost through timeout if both players are really committed to the board by making their first moves."
+        answer: "A no-show means one side never made its first move before the game-start timeout expired. In that case, the game can be settled without normal move-timeout win conditions."
     },
     {
         question: "Can I play without staking?",
-        answer: "Currently, all games require a minimum stake. This ensures both players are committed to completing the game."
+        answer: "BruteMove currently runs as a wagered game flow: both players lock equal stake amounts. You choose the amount when creating, and the app validates whether it is acceptable for the selected mode/factory."
     },
     {
         question: "How are moves verified?",
@@ -66,7 +66,7 @@ const faqItems: FAQItem[] = [
     },
     {
         question: "What game categories are there?",
-        answer: "Currently, BruteMove only supports daily games with a reset time control. This means the move clock runs for at least 24 hours, and after a player makes a move, the timeout resets to the initial value (24 hours). Other time controls exist in chess, such as live games where players have a global clock for all their moves that counts down during their turn. Additional game categories will be added to the platform soon."
+        answer: "BruteMove supports two modes: Daily (per-move reset clock) and Live (classical clock with increment). Use the Daily/Live selector in the header to switch which mode the UI is showing."
     },
     {
         question: "Will BruteMove! offer tournaments?",

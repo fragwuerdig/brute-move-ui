@@ -1,9 +1,10 @@
-import { useEffect, useState, useRef } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { MsgExecuteContract } from '@goblinhunt/cosmes/client';
 import type { UnsignedTx } from '@goblinhunt/cosmes/wallet';
-import { fetchBankBalance, fetchContractStateSmart, getFactoryAddr, addressEllipsis } from './Common';
+import { fetchBankBalance, fetchContractStateSmart, getFactoryAddr, addressEllipsis, isModeAvailable } from './Common';
 import { useWallet } from './WalletProvider';
+import { useGameMode } from './GameModeContext';
 import { useNameService, type Profile } from './hooks';
 import { GlassCard } from './GlassCard';
 import { Input } from './Input';
@@ -20,9 +21,12 @@ interface ModalState {
 }
 
 function Create() {
+    const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const [color, setColor] = useState<ColorChoice>('Random');
     const { connectedAddr, broadcast, chain, connect, connected } = useWallet();
+    const { mode, setMode } = useGameMode();
+    const liveAvailable = chain ? isModeAvailable(chain, 'live') : false;
     const { resolveAddress, searchByPrefix } = useNameService();
     const [modal, setModal] = useState<ModalState>({ open: false, message: '' });
 
@@ -32,6 +36,7 @@ function Create() {
     const [disabledText, setDisabledText] = useState('');
     const [feeUluna, setFeeUluna] = useState(0);
     const [refresh, setRefresh] = useState(0);
+    const [selectedTimePreset, setSelectedTimePreset] = useState<number | null>(null);
 
     // Recipient (direct invite)
     const [recipient, setRecipient] = useState<string>('');
@@ -42,6 +47,31 @@ function Create() {
     const [isSearching, setIsSearching] = useState(false);
     const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
+
+    const timePresets = useMemo(() => {
+        if (mode === 'live') {
+            return [
+                { label: '30 min', value: 30 },
+                { label: '60 min', value: 60 },
+                { label: '90 min', value: 90 },
+                { label: '2 hrs', value: 120 },
+            ];
+        }
+        return [
+            { label: '12 h', value: 12 },
+            { label: '24 h', value: 24 },
+            { label: '48 h', value: 48 },
+            { label: '72 h', value: 72 },
+        ];
+    }, [mode]);
+
+    const moveTimeoutSeconds = useMemo(() => {
+        if (selectedTimePreset === null) return undefined;
+        if (mode === 'live') {
+            return Math.floor(selectedTimePreset * 60);
+        }
+        return Math.floor(selectedTimePreset * 3600);
+    }, [selectedTimePreset, mode]);
 
     // Initialize recipient from URL parameter
     useEffect(() => {
@@ -135,18 +165,18 @@ function Create() {
         if (!chain) return;
         const betUluna = betAmount * 1000000;
         const query = { fee: { bet: betUluna.toString() } };
-        fetchContractStateSmart(getFactoryAddr(chain), query, chain)
+        fetchContractStateSmart(getFactoryAddr(chain, mode), query, chain)
             .then((data) => setFeeUluna(parseInt(data) || 0))
             .catch(() => setFeeUluna(0));
-    }, [betAmount, chain]);
+    }, [betAmount, chain, mode]);
 
     // Fetch minimum bet
     useEffect(() => {
         const query = { minimum_bet: {} };
-        fetchContractStateSmart(getFactoryAddr(chain), query, chain)
+        fetchContractStateSmart(getFactoryAddr(chain, mode), query, chain)
             .then((data) => setMinBetAmount(data))
             .catch(() => { });
-    }, [chain]);
+    }, [chain, mode]);
 
     // Check balance
     useEffect(() => {
@@ -181,23 +211,25 @@ function Create() {
 
     const handleCreate = () => {
         if (!connectedAddr) return;
-
         const betUluna = betAmount * 1000000;
-        const msg = {
+        const createMsg: Record<string, any> = {
             create_joinable_game: {
                 bet: betUluna.toString(),
                 with_color: color === 'Random' ? null : color,
                 recipient: recipient || null,
             }
         };
+        if (moveTimeoutSeconds !== undefined) {
+            createMsg.create_joinable_game.move_timeout = moveTimeoutSeconds;
+        }
         const fundsAmount = (betUluna + feeUluna).toString();
         const tx: UnsignedTx = {
             msgs: [
                 new MsgExecuteContract({
                     sender: connectedAddr,
-                    contract: getFactoryAddr(chain),
+                    contract: getFactoryAddr(chain, mode),
                     funds: [{ denom: 'uluna', amount: fundsAmount }],
-                    msg
+                    msg: createMsg
                 }),
             ],
             memo: recipient ? "Challenge a player" : "Create a new game",
@@ -240,9 +272,12 @@ function Create() {
         return (
             <div className="create-container">
                 <div className="create-header">
-                    <h1 className="create-header__title">Create Challenge</h1>
-                    <p className="create-header__subtitle">Set your terms and stake your claim</p>
-                </div>
+                <h1 className="create-header__title">
+                    Create Challenge
+                    <span className={`mode-badge mode-badge--${mode}`}>{mode}</span>
+                </h1>
+                <p className="create-header__subtitle">Set your terms and stake your claim</p>
+            </div>
                 <GlassCard accent>
                     <div className="create-section" style={{ textAlign: 'center', padding: '40px 20px' }}>
                         <h2 className="create-section__title">Connect Wallet</h2>
@@ -262,12 +297,44 @@ function Create() {
         <div className="create-container">
             {/* Header */}
             <div className="create-header">
-                <h1 className="create-header__title">Create Challenge</h1>
+                <h1 className="create-header__title">
+                    Create Challenge
+                    <span className={`mode-badge mode-badge--${mode}`}>{mode}</span>
+                </h1>
                 <p className="create-header__subtitle">Set your terms and stake your claim</p>
             </div>
 
             {/* Main Form */}
             <GlassCard accent>
+                {/* Mode Selector */}
+                <div className="create-section">
+                    <h2 className="create-section__title">Mode</h2>
+                    <p className="create-section__desc">
+                        {mode === 'live'
+                            ? 'Live games use a running clock with increment.'
+                            : 'Daily games reset the timer after each move.'}
+                    </p>
+                    <div className="mode-selector">
+                        <button
+                            type="button"
+                            className={`mode-option ${mode === 'daily' ? 'mode-option--active' : ''}`}
+                            onClick={() => setMode('daily')}
+                        >
+                            Daily
+                        </button>
+                        <button
+                            type="button"
+                            className={`mode-option ${mode === 'live' ? 'mode-option--active' : ''}`}
+                            onClick={() => setMode('live')}
+                            disabled={!liveAvailable}
+                        >
+                            Live
+                        </button>
+                    </div>
+                </div>
+
+                <div className="create-divider" />
+
                 {/* Color Selection */}
                 <div className="create-section">
                     <h2 className="create-section__title">Choose Your Color</h2>
@@ -301,6 +368,35 @@ function Create() {
                             onChange={(e) => setBetAmount(parseInt(e) || 0)}
                         />
                         <span className="bet-currency">LUNC</span>
+                    </div>
+                </div>
+
+                <div className="create-divider" />
+
+                {/* Time Control */}
+                <div className="create-section">
+                    <h2 className="create-section__title">
+                        {mode === 'live' ? 'Initial Time' : 'Move Timeout'}
+                        <span className="create-section__optional"> (Optional)</span>
+                    </h2>
+                    <p className="create-section__desc">
+                        {mode === 'live'
+                            ? 'Pick the initial time per player. Increment uses the live default.'
+                            : 'Pick the per-move timeout. Leave unselected to use default.'}
+                    </p>
+                    <div className="time-presets">
+                        {timePresets.map((preset) => (
+                            <button
+                                key={preset.label}
+                                type="button"
+                                className={`time-preset ${selectedTimePreset === preset.value ? 'time-preset--active' : ''}`}
+                                onClick={() => setSelectedTimePreset(
+                                    selectedTimePreset === preset.value ? null : preset.value
+                                )}
+                            >
+                                {preset.label}
+                            </button>
+                        ))}
                     </div>
                 </div>
 
@@ -434,7 +530,7 @@ function Create() {
                                 {modal.redirect && (
                                     <button
                                         className="create-modal__btn create-modal__btn--primary"
-                                        onClick={() => window.location.href = modal.redirect!}
+                                        onClick={() => navigate(modal.redirect!)}
                                     >
                                         Go to Game
                                     </button>
