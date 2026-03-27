@@ -29,9 +29,8 @@ const ADDRESS_BOOK: Record<string, Record<GameMode, AddressConfig>> = {
       gamedb: 'terra1tuae4mshuu3fna25j25k4anyv9dz7qcyqntlmvd9ewprztq5m0hsd6erl9',
     },
     live: {
-      // TODO: set live factory + leaderboard addresses for columbus-5
-      factory: '',
-      leaderboard: '',
+      factory: 'terra1fr6ky9psf7ffumvs8y48edv5y7uunsdl52c8f4epj3muy5slp9gqh3gteg',
+      leaderboard: 'terra1w7rgrdzlrs9xssrwmjf25ktum308ftnxluvzr97my4vngj7r2jkskhsfwx',
       gamedb: 'terra1tuae4mshuu3fna25j25k4anyv9dz7qcyqntlmvd9ewprztq5m0hsd6erl9',
     },
   },
