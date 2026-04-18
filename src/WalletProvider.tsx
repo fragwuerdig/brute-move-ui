@@ -18,7 +18,7 @@ import {
 import { createPortal } from "react-dom";
 import { ensureChainAddedKeplr } from "./AddTestnet";
 
-const WC_PROJECT_ID = 'e2d195872baa9e9701adee752166fbcf';
+const WC_PROJECT_ID = 'e07aa65141dc7353942175d7e9888962';
 
 const STORAGE_KEY = 'wallet_connected';
 
