@@ -87,7 +87,12 @@ function Head({ children }: { children?: React.ReactNode }) {
                                 Live
                             </button>
                         </div>
-                        <HeaderMenu />
+                        <HeaderMenu
+                            showMobileConnect={!connected}
+                            onMobileConnect={connect}
+                            showMobileDisconnect={connected}
+                            onMobileDisconnect={disconnect}
+                        />
                         {connected && connectedAddr ? (
                             <>
                                 <a
@@ -99,13 +104,13 @@ function Head({ children }: { children?: React.ReactNode }) {
                                 >
                                     <BellIcon />
                                 </a>
-                                <button className="header-wallet" onClick={disconnect}>
+                                <button className="header-wallet header-wallet--desktop-only" onClick={disconnect}>
                                     <span className="header-wallet__address"><AddressDisplay address={connectedAddr} /></span>
                                     <DisconnectIcon />
                                 </button>
                             </>
                         ) : (
-                            <button className="header-connect" onClick={connect}>
+                            <button className="header-connect header-connect--desktop-only" onClick={connect}>
                                 <WalletIcon />
                                 <span>Connect</span>
                             </button>

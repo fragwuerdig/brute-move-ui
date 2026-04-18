@@ -335,6 +335,26 @@
   color: #ffffff;
 }
 
+.header-menu__separator {
+  height: 1px;
+  margin: 6px 8px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.header-menu__item--connect {
+  color: #f7b32b;
+  font-weight: 600;
+}
+
+.header-menu__item--disconnect {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+.header-menu__mobile-only {
+  display: none;
+}
+
 /* Mobile Responsive */
 @media (max-width: 600px) {
   .header-inner {
@@ -398,6 +418,10 @@
     font-size: 10px;
   }
 
+  .header-wallet--desktop-only {
+    display: none;
+  }
+
   .header-wallet svg {
     width: 14px;
     height: 14px;
@@ -408,9 +432,17 @@
     font-size: 12px;
   }
 
+  .header-connect--desktop-only {
+    display: none;
+  }
+
   .header-connect svg {
     width: 14px;
     height: 14px;
+  }
+
+  .header-menu__mobile-only {
+    display: block;
   }
 
   .header-spacer {

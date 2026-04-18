@@ -37,7 +37,19 @@ const menuItems: MenuItem[] = [
     { label: 'FAQ', path: '/faq' },
 ];
 
-function HeaderMenu() {
+interface HeaderMenuProps {
+    showMobileConnect?: boolean;
+    onMobileConnect?: () => void;
+    showMobileDisconnect?: boolean;
+    onMobileDisconnect?: () => void;
+}
+
+function HeaderMenu({
+    showMobileConnect = false,
+    onMobileConnect,
+    showMobileDisconnect = false,
+    onMobileDisconnect,
+}: HeaderMenuProps) {
     const [isOpen, setIsOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
 
@@ -77,6 +89,34 @@ function HeaderMenu() {
                             {item.label}
                         </Link>
                     ))}
+                    {showMobileConnect && onMobileConnect && (
+                        <>
+                            <div className="header-menu__separator header-menu__mobile-only" />
+                            <button
+                                className="header-menu__item header-menu__item--connect header-menu__mobile-only"
+                                onClick={() => {
+                                    setIsOpen(false);
+                                    onMobileConnect();
+                                }}
+                            >
+                                Connect
+                            </button>
+                        </>
+                    )}
+                    {showMobileDisconnect && onMobileDisconnect && (
+                        <>
+                            <div className="header-menu__separator header-menu__mobile-only" />
+                            <button
+                                className="header-menu__item header-menu__item--disconnect header-menu__mobile-only"
+                                onClick={() => {
+                                    setIsOpen(false);
+                                    onMobileDisconnect();
+                                }}
+                            >
+                                Disconnect
+                            </button>
+                        </>
+                    )}
                 </div>
             )}
         </div>
